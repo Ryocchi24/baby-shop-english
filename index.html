@@ -156,7 +156,6 @@
   .cat-name{ font-size:17px; font-weight:800; line-height:1.35; }
   .cat-desc{ font-size:12.5px; color:var(--sub); font-weight:700; }
   .cat-count{ display:flex; flex-direction:column; align-items:flex-end; flex-shrink:0; font-size:13px; color:var(--sub); font-weight:800; }
-  .cat-count .learned{ color:var(--accent); font-size:11.5px; }
   /* 例文・メモはふだん閉じておき、行をタップしたら開く(単語をぱっと見渡せるように) */
   .item-row:not(.open) .item-details{ display:none; }
   .item-row.open .item-more{ display:none; }
@@ -593,7 +592,14 @@ function speak(text, slow){
 }
 function stopSpeech(){
   if("speechSynthesis" in window) window.speechSynthesis.cancel();
-  if(currentAudio){ currentAudio.pause(); currentAudio = null; }
+  if(currentAudio){
+    const a = currentAudio;
+    currentAudio = null;
+    a.pause();
+    // iPhone では、音声を流したあとにすぐマイクを使うと音を拾えないことがある。中身を外して音の出口を手放させる
+    a.removeAttribute("src");
+    try{ a.load(); }catch(e){}
+  }
 }
 /* 収録済みの単語・例文は、AIで作ったお手本音声(audio/)を鳴らす。音声ファイルが無いもの(自作単語・音声を作る前に足した項目)や、
    文言を書き換えて音声と合わなくなったものは、端末の読み上げにする */
@@ -789,14 +795,13 @@ function renderHomeBody(){
   }
   const tile = c => {
     const items = itemsOfCat(c.id);
-    const learned = items.filter(isLearned).length;
     return `<button class="cat-tile" data-cat="${c.id}">
       <span class="cat-icon" aria-hidden="true">${c.icon}</span>
       <span class="cat-text">
         <span class="cat-name">${esc(c.name)}</span>
         <span class="cat-desc">${esc(c.desc)}</span>
       </span>
-      <span class="cat-count">${items.length}${c.kind === "phrase" ? "フレーズ" : "語"}${learned ? `<span class="learned">覚えた ${learned}</span>` : ""}</span>
+      <span class="cat-count">${items.length}${c.kind === "phrase" ? "フレーズ" : "語"}</span>
     </button>`;
   };
   body.innerHTML = `
@@ -815,11 +820,10 @@ function renderCategory(){
   const c = catById(currentCatId);
   if(!c){ go("home"); return; }
   const items = itemsOfCat(c.id);
+  // 「覚えた」はマイ単語帳で付けるもの、発音の正答率は発音チェックの中で見せるものなので、ここには出さない
   const summary = () => {
-    const learned = items.filter(isLearned).length;
     const fav = items.filter(isFav).length;
-    const rate = pronRate(items);
-    return `${items.length}${c.kind === "phrase" ? "フレーズ" : "語"}・覚えた ${learned}${fav ? `・♡ ${fav}` : ""}${rate === null ? "" : `・発音の正答率 ${rate}%`}`;
+    return `${items.length}${c.kind === "phrase" ? "フレーズ" : "語"}${fav ? `・♡ ${fav}` : ""}`;
   };
   app.innerHTML = `
     <div class="topbar">
@@ -1362,6 +1366,7 @@ const PRON_PASS = 80;
 const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition || null;
 let pron = null;       // 発音チェックの進行
 let currentRec = null; // 聞き取り中の音声認識
+let recRunning = 0; // 終わりきっていない聞き取りの数(前のが終わる前に次を始めると、iPhone では失敗することがある)
 function stopListening(){
   if(!currentRec) return;
   const r = currentRec;
@@ -1393,8 +1398,25 @@ function lev(a, b){
   return prev[b.length];
 }
 const strSim = (a, b) => (a.length || b.length) ? 1 - lev(a, b) / Math.max(a.length, b.length) : 1;
+// 発音の近さを比べるための簡単な「音のかたち」。nap と knap、canopy と kanopy のような、つづりだけの違いを同じにする。
+// 母音の違い(seat と sit、crib と crab)や、r と l、b と v は区別する(日本人が間違えやすい所なので甘くしない)
+function soundKey(word){
+  let w = String(word).toLowerCase().replace(/[^a-z]/g, "");
+  if(w.length > 3) w = w.replace(/e$/, "");
+  w = w.replace(/^(kn|gn|pn|wr)/, m => m[1])
+    .replace(/ph/g, "f").replace(/gh(?![aeiou])/g, "").replace(/ck/g, "k").replace(/tch/g, "ch").replace(/dge/g, "j")
+    .replace(/(t|s)ion/g, "shan").replace(/c(?=[eiy])/g, "s").replace(/c/g, "k").replace(/q/g, "k").replace(/x/g, "ks")
+    .replace(/z/g, "s").replace(/wh/g, "w");
+  if(!w) return "";
+  const head = /[aeiouy]/.test(w[0]) ? "a" : w[0];
+  return (head + w.slice(1).replace(/[aeiouy]+/g, m => m[0] === "y" ? "i" : m[0])).replace(/(.)\1+/g, "$1");
+}
+// 同じ音の別の単語。音声認識はよく使うほうの単語で返してくるので、収録語でよく起きる聞き違いは言えたとみなす
+const HOMOPHONES = { "break":"brake", "wait":"weight", "way":"weigh", "sail":"sale", "seam":"seem", "plain":"plane",
+  "pare":"pair", "pear":"pair", "hole":"whole", "wear":"where", "four":"for", "to":"two", "too":"two", "right":"write", "buy":"by", "bye":"by" };
+const sameSound = (a, b) => soundKey(a) === soundKey(b) || HOMOPHONES[a] === b || HOMOPHONES[b] === a || (HOMOPHONES[a] && HOMOPHONES[a] === HOMOPHONES[b]);
 // 単語が「言えた」とみなすか(複数形などの小さな違いは許す)
-const sameWord = (a, b) => a === b || (a.length > 3 && strSim(a, b) >= 0.75);
+const sameWord = (a, b) => a === b || (a.length > 3 && strSim(a, b) >= 0.75) || (a.length > 2 && sameSound(a, b));
 // お手本の各単語が、聞き取れた言葉の中に順番どおり出てきたか
 function matchedWords(T, H){
   const dp = Array.from({ length:T.length + 1 }, () => new Array(H.length + 1).fill(0));
@@ -1418,7 +1440,13 @@ function scorePron(target, heard){
   if(T.length === 1){
     // 1語のときは、前後に余計な言葉(the など)が付いても下げない。2語に分かれて聞こえた場合(highchair など)も見る
     const cands = [H.join(" "), H.join(""), ...H, ...H.slice(1).map((h, k) => H[k] + h)];
-    sim = Math.max(...cands.map(c => strSim(T[0], c)));
+    // 短い単語は1文字違いでも別の単語になる(frame と flame、lock と rock)ので、つづりの近さは厳しめに見る。
+    // そのかわり、音が同じもの(break と聞き取られた brake)と、複数形の s が付いただけのものは言えたとみなす
+    const t = T[0];
+    sim = Math.max(...cands.map(c => Math.max(
+      Math.pow(strSim(t, c), 1.6),
+      c === t + "s" || t === c + "s" ? 0.95 : 0,
+      sameSound(t, c) ? 0.92 : 0)));
     hits = [sim >= PRON_PASS / 100];
   } else {
     hits = matchedWords(T, H);
@@ -1441,12 +1469,6 @@ function recordPron(w, score){
   s.best = Math.max(s.best, score);
   state.pron[w.id] = s;
   saveState();
-}
-// これまでの発音チェックの正答率(80点以上だった回数の割合)。まだ1回もしていなければ null
-function pronRate(items){
-  let n = 0, ok = 0;
-  items.forEach(w => { const s = state.pron[w.id]; if(s){ n += s.n; ok += s.ok; } });
-  return n ? Math.round(100 * ok / n) : null;
 }
 // iPhone で音声の聞き取り(マイク)が使えるのは Safari だけ。Chrome・Firefox や、LINE などのアプリの中の画面では
 // 許可の確認も出ずに止まってしまうので、始める前に Safari で開き直すよう案内する
@@ -1592,12 +1614,26 @@ function renderPron(){
     if(st === "recording"){ if(currentRec){ try{ currentRec.stop(); }catch(e){} } return; } // ■で話し終わり
     if(st === "starting" || st === "scoring") return;
     stopSpeech(); // お手本の音を拾わないように止める
+    // 前の聞き取りが終わりきっていなければ、終わるのを少し待ってから始める
+    if(recRunning > 0){
+      setMic("starting");
+      const waitStart = Date.now();
+      const wait = setInterval(() => {
+        if(recRunning > 0 && Date.now() - waitStart < 1500) return;
+        clearInterval(wait);
+        recRunning = 0;
+        if(micBtn.isConnected){ micBtn.dataset.state = "idle"; micBtn.onclick(); }
+      }, 100);
+      return;
+    }
     const rec = new SpeechRec();
     rec.lang = "en-US";
     rec.interimResults = true;
     rec.maxAlternatives = 5;
     rec.continuous = true; // ■を押すか、黙るまで聞き続ける(途中で勝手に切れないように)
-    let finals = [], alts = [], interim = "", err = null, maxTimer = null, silenceTimer = null, started = false;
+    // 「この言葉が来るはず」というヒントを渡せるブラウザでは渡す(短い単語の聞き違いを減らす)
+    try{ if("SpeechRecognitionPhrase" in window) rec.phrases = [new window.SpeechRecognitionPhrase(w.en, 5.0)]; }catch(e){}
+    let finals = [], alts = [], interim = "", err = null, maxTimer = null, silenceTimer = null, noSpeechTimer = null, started = false, gotResult = false;
     // うまく動かないときに原因を探れるよう、届いた合図を記録しておく(失敗したときに小さく表示する)
     const t0 = Date.now(), diag = [];
     const note = name => { if(diag.length < 12) diag.push(`${name}@${((Date.now() - t0) / 1000).toFixed(1)}`); };
@@ -1622,6 +1658,8 @@ function renderPron(){
       setMic("recording");
       interimEl.textContent = "";
       maxTimer = setTimeout(stopRec, MAX_MS);
+      // 何も聞き取れないまま待ち続けないよう、しばらくしたら止めて言い方を案内する
+      noSpeechTimer = setTimeout(() => { if(!gotResult) stopRec(); }, 7000);
     };
     rec.onstart = () => { note("start"); markStarted(); };
     rec.onaudiostart = () => { note("audio"); markStarted(); };
@@ -1630,6 +1668,7 @@ function renderPron(){
     rec.onresult = e => {
       note("result");
       markStarted();
+      gotResult = true;
       finals = []; alts = []; interim = "";
       for(let i = 0; i < e.results.length; i++){
         const r = e.results[i];
@@ -1643,8 +1682,15 @@ function renderPron(){
       clearTimeout(silenceTimer);
       silenceTimer = setTimeout(stopRec, SILENCE_MS);
     };
-    rec.onerror = e => { err = e.error || "error"; note("error"); };
+    rec.onerror = e => {
+      note("error");
+      // こちらから止めたとき(aborted)や、声が聞こえなかったとき(no-speech)は、エラーではなく「聞き取れなかった」として扱う
+      if(e.error === "aborted" || e.error === "no-speech") return;
+      err = e.error || "error";
+    };
     rec.onend = () => {
+      recRunning = Math.max(0, recRunning - 1);
+      clearTimeout(noSpeechTimer);
       clearTimeout(hintTimer);
       clearTimeout(giveUpTimer);
       clearTimeout(maxTimer);
@@ -1658,6 +1704,7 @@ function renderPron(){
           : err === "service-not-allowed" ? "音声の聞き取りが使えません<small>iPhone は「設定 → 一般 → キーボード → 音声入力」と「設定 → Siri」をオンにしてください</small>"
           : err === "network" ? "通信できませんでした<small>インターネットにつながっているか確認してください</small>"
           : err === "audio-capture" ? "マイクが見つかりませんでした<small>ほかのアプリがマイクを使っていないか確認してください</small>"
+          : started ? `聞き取れませんでした<small>少しゆっくり、はっきり言ってみてください。${pronTokens(w.en).length === 1 ? `短い単語は「the ${esc(w.en)}」のように前に the を付けて言っても大丈夫です` : ""}</small>`
           : "聞き取れませんでした<small>マイクをタップして、「録音中」と出てから話してください</small>") + (started && !err ? "" : diagText()));
         return;
       }
@@ -1673,7 +1720,7 @@ function renderPron(){
     };
     currentRec = rec;
     setMic("starting");
-    try{ rec.start(); }
+    try{ rec.start(); recRunning++; }
     catch(e){ currentRec = null; setMic("idle", "マイクを使い始められませんでした。もう一度タップしてください"); }
   };
   document.getElementById("btnModel").onclick = () => { stopListening(); setMic("idle"); playEntry(w, "word"); };

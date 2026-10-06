@@ -14,10 +14,10 @@
 
 ```
 cd BabyShopEnglish
-python3 -m http.server 8765
+python3 -m http.server 8770 --bind 127.0.0.1
 ```
 
-ブラウザで http://localhost:8765/ を開く。
+ブラウザで http://127.0.0.1:8770/ を開く。
 
 ## 保存について
 

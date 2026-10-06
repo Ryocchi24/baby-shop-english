@@ -1,11 +1,11 @@
 #!/bin/bash
 # 使い方の説明に載せる画面写真を撮る(Google Chrome を画面なしで動かす)。
-# 先に BabyShopEnglish フォルダで「python3 -m http.server 8765」を起動しておくこと。
+# 先に BabyShopEnglish フォルダで「python3 -m http.server 8770 --bind 127.0.0.1」を起動しておくこと(ポートは PORT=… で変えられる)。
 # 写真は tutorial/*.jpg に、指す部品の位置は tutorial/marks.json に書き出す(写真と同じ Chrome で測るので、ずれない)。
 # marks.json の version は写真の版番号。アプリは写真をこの番号付きで読むので、古い写真と新しい位置が混ざらない。
 cd "$(dirname "$0")/.."
 CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-BASE="http://127.0.0.1:8765/tools/shot.html"
+BASE="http://127.0.0.1:${PORT:-8770}/tools/shot.html"
 TMP=$(mktemp -d)
 # 画面なしの Chrome は、指定した高さのうち下の 90px ほどが写らない。縦に広く取って撮り、上から 812px ぶんを切り出す
 FLAGS=(--headless=new --disable-gpu --hide-scrollbars --mute-audio --user-data-dir="$TMP/profile" --window-size=375,1000 --virtual-time-budget=6000)
