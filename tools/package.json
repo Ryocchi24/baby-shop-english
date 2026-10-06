@@ -1,0 +1,9 @@
+{
+  "name": "baby-shop-english-tools",
+  "private": true,
+  "type": "module",
+  "description": "お手本音声を作るための道具(アプリ本体には含めない)",
+  "dependencies": {
+    "kokoro-js": "^1.2.1"
+  }
+}

@@ -1,0 +1,1720 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="接客えいご">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14161C" media="(prefers-color-scheme: dark)">
+<title>ベビー接客えいご</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap" rel="stylesheet">
+<!-- 見た目は「ハングルの卵」の個別登録画面にそろえている(立体ボタン・ピンクの個別登録色)。アクセントだけベビー用品向けの緑みの青にした -->
+<style>
+  :root{
+    --bg:#FFFFFF;
+    --surface:#FFFFFF;
+    --text:#33302C;
+    --sub:#746E65;
+    --accent:#24877D;
+    --accent-shade:#1A655E;
+    --accent-light:#E5F4F1;
+    --accent-border:#BFE3DC;
+    --hair:#ECE7E0;
+    --track:#F1ECE5;
+    --blue:#2F5FD1;
+    --blue-shade:#1F4DB8;
+    --indiv:#B23368;
+    --indiv-shade:#8A2350;
+    --indiv-light:#FBEAF1;
+    --pos-text:#1A655E;
+    --gold:#C8860D;
+    --gold-light:#FBF1DE;
+    --blue-light:#EAF0FE;
+    --danger:#C9352F;
+    --on-accent:#FFFFFF;
+    --overlay:rgba(20,22,28,0.6);
+    --font-ui:'M PLUS Rounded 1c', "Hiragino Maru Gothic ProN", -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", sans-serif;
+    --font-en:-apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#14161C; --surface:#242732; --text:#ECEDF1; --sub:#A6A9B8;
+      --accent:#5CC4B6; --accent-shade:#3A9387; --accent-light:#173230; --accent-border:#27504B;
+      --hair:#2B2E38; --track:#2B2E38; --blue:#6C8FEF; --blue-shade:#3F63C4;
+      --indiv:#F291B7; --indiv-shade:#B8577D; --indiv-light:#3A2430;
+      --pos-text:#5CC4B6; --gold:#E8B84B; --danger:#FF6E6E; --on-accent:#08201D;
+      --gold-light:#3A311C; --blue-light:#202A44;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#14161C; --surface:#242732; --text:#ECEDF1; --sub:#A6A9B8;
+    --accent:#5CC4B6; --accent-shade:#3A9387; --accent-light:#173230; --accent-border:#27504B;
+    --hair:#2B2E38; --track:#2B2E38; --blue:#6C8FEF; --blue-shade:#3F63C4;
+    --indiv:#F291B7; --indiv-shade:#B8577D; --indiv-light:#3A2430;
+    --pos-text:#5CC4B6; --gold:#E8B84B; --danger:#FF6E6E; --on-accent:#08201D;
+    --gold-light:#3A311C; --blue-light:#202A44;
+  }
+  *{ box-sizing:border-box; }
+  html, body{ margin:0; padding:0; }
+  html{ background:var(--bg); -webkit-text-size-adjust:100%; }
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:var(--font-ui); font-weight:500; font-size:17px; line-height:1.6;
+    -webkit-font-smoothing:antialiased; touch-action:manipulation;
+    -webkit-tap-highlight-color:transparent;
+  }
+  body.sheet-open{ overflow:hidden; }
+  button{ font-family:inherit; color:inherit; }
+  .app{ max-width:720px; margin:0 auto; padding:calc(20px + env(safe-area-inset-top)) 16px calc(28px + env(safe-area-inset-bottom)); }
+  h1{ font-size:21px; font-weight:800; margin:0 0 4px; }
+  p.sub, .sub{ color:var(--sub); font-size:15px; margin:0; }
+
+  /* ----- ボタン(立体) ----- */
+  .btn{
+    display:block; width:100%; text-align:center; padding:14px 16px; border-radius:16px;
+    border:none; border-bottom:5px solid var(--accent-shade); font-size:17px; font-weight:800; cursor:pointer; margin-top:12px;
+    background:var(--accent); color:var(--on-accent); transition:transform .08s ease-out;
+  }
+  .btn:active{ transform:translateY(3px); border-bottom-width:2px; }
+  .btn:disabled{ opacity:.45; transform:none; border-bottom-width:5px; cursor:not-allowed; }
+  .btn.btn-indiv{ background:var(--indiv); border-bottom-color:var(--indiv-shade); color:#fff; }
+  .btn.secondary{ background:var(--accent-light); color:var(--accent); border:2px solid var(--accent-border); border-bottom-width:5px; }
+  .btn.ghost{ background:var(--surface); color:var(--sub); border:2px solid var(--hair); border-bottom-width:5px; }
+  .btn.ghost:active, .btn.secondary:active{ border-bottom-width:2px; }
+  .btn.danger-text{ color:var(--danger); }
+  .icon-btn{ background:none; border:none; color:var(--sub); cursor:pointer; padding:4px 8px; min-width:44px; min-height:44px; display:inline-flex; align-items:center; justify-content:center; border-radius:12px; }
+  .icon-btn:active{ background:var(--track); }
+
+  /* ----- 入力欄 ----- */
+  .field-label{ display:block; font-size:13px; font-weight:700; color:var(--sub); margin-bottom:4px; }
+  .text-input{
+    display:block; width:100%; padding:11px 14px; margin-bottom:14px;
+    border:2px solid var(--hair); border-radius:14px; background:var(--surface); color:var(--text);
+    font-size:16px; font-family:inherit;
+  }
+  textarea.text-input{ resize:vertical; line-height:1.5; }
+  .text-input:focus{ outline:none; border-color:var(--accent); }
+  .text-input.en{ font-family:var(--font-en); }
+  .input-with-btn{ display:flex; gap:8px; align-items:flex-start; }
+  .input-with-btn .text-input{ flex:1; min-width:0; }
+  .input-with-btn .speak-btn{ margin-top:2px; }
+  .word-pair{ margin:0 0 18px; padding:12px 12px 0; border:1.5px solid var(--indiv); border-radius:14px; background:var(--indiv-light); }
+  .form-section-head{ display:flex; align-items:center; gap:6px; margin:0 0 8px; font-size:14px; font-weight:800; }
+  .form-section-opt{ margin-top:4px; }
+  .req-badge, .opt-badge{ font-size:11px; font-weight:800; padding:1px 7px; border-radius:8px; }
+  .req-badge{ background:var(--indiv); color:#fff; }
+  .opt-badge{ background:var(--hair); color:var(--sub); }
+  .dup-note{ margin:-6px 0 14px; padding:10px 12px; border-radius:12px; background:var(--surface); border:1.5px dashed var(--indiv); font-size:13.5px; }
+  .dup-note p{ margin:0; }
+  .dup-note .dup-sub{ margin-top:4px; color:var(--sub); font-size:12.5px; font-weight:700; }
+  .dup-note-btn{ display:flex; align-items:center; justify-content:center; gap:5px; width:100%; margin-top:8px; padding:9px; border:2px solid var(--indiv); border-bottom-width:3px; border-radius:10px; background:var(--indiv-light); color:var(--indiv); font-size:14px; font-weight:800; cursor:pointer; }
+
+  /* ----- ホーム ----- */
+  .home-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:8px; margin-bottom:16px; }
+  .brand{ font-size:22px; font-weight:800; color:var(--accent); line-height:1.3; }
+  .brand-sub{ font-size:13.5px; color:var(--sub); font-weight:700; margin-top:2px; }
+  .my-card{ display:flex; flex-direction:column; gap:10px; padding:14px; border-radius:20px; background:var(--indiv-light); border:2px solid var(--indiv); border-bottom-width:5px; margin-bottom:18px; }
+  .my-card-main{ display:flex; align-items:center; gap:12px; width:100%; padding:0; border:none; background:none; text-align:left; cursor:pointer; }
+  .my-card-icon{ width:46px; height:46px; border-radius:14px; background:var(--indiv); color:#fff; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .my-card-text{ flex:1; min-width:0; display:flex; flex-direction:column; }
+  .my-card-text b{ font-size:18px; font-weight:800; }
+  .my-card-text small{ font-size:13px; color:var(--sub); font-weight:700; }
+  .my-card-arrow{ color:var(--indiv); flex-shrink:0; }
+  .my-card-actions{ display:flex; gap:8px; }
+  .my-card-actions .btn{ margin:0; padding:10px 8px; font-size:15px; border-radius:14px; border-bottom-width:4px; }
+  .my-card-actions .btn:active{ border-bottom-width:2px; }
+  .my-card-actions .btn-outline{ background:var(--surface); color:var(--indiv); border:2px solid var(--indiv); border-bottom-width:4px; }
+  .search-box{ position:relative; margin-bottom:18px; }
+  .search-box svg{ position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--sub); pointer-events:none; }
+  .search-box .text-input{ margin:0; padding-left:42px; }
+  .section-title{ display:flex; align-items:baseline; gap:8px; font-size:15px; font-weight:800; margin:6px 2px 10px; }
+  .section-title small{ font-size:12px; color:var(--sub); font-weight:700; }
+  .cat-list{ display:flex; flex-direction:column; gap:10px; margin-bottom:22px; }
+  .cat-tile{
+    display:flex; align-items:center; gap:14px; width:100%; padding:14px 16px; text-align:left;
+    background:var(--surface); border:2px solid var(--hair); border-bottom-width:5px; border-radius:18px; cursor:pointer;
+  }
+  .cat-tile:active{ transform:translateY(3px); border-bottom-width:2px; }
+  .cat-icon{ width:48px; height:48px; border-radius:14px; background:var(--accent-light); display:flex; align-items:center; justify-content:center; font-size:26px; flex-shrink:0; }
+  .cat-text{ flex:1; min-width:0; display:flex; flex-direction:column; }
+  .cat-name{ font-size:17px; font-weight:800; line-height:1.35; }
+  .cat-desc{ font-size:12.5px; color:var(--sub); font-weight:700; }
+  .cat-count{ display:flex; flex-direction:column; align-items:flex-end; flex-shrink:0; font-size:13px; color:var(--sub); font-weight:800; }
+  .cat-count .learned{ color:var(--accent); font-size:11.5px; }
+  /* 例文・メモはふだん閉じておき、行をタップしたら開く(単語をぱっと見渡せるように) */
+  .item-row:not(.open) .item-details{ display:none; }
+  .item-row.open .item-more{ display:none; }
+  .item-body.has-details{ cursor:pointer; }
+  .item-en .word-pos{ margin-left:8px; vertical-align:3px; font-family:var(--font-ui); -webkit-user-select:none; user-select:none; }
+  .item-more{ display:inline-flex; align-items:center; gap:3px; margin-top:4px; font-size:12px; font-weight:800; color:var(--accent); }
+  .home-foot{ text-align:center; font-size:12px; color:var(--sub); margin:8px 0 0; }
+
+  /* ----- 一覧の行 ----- */
+  .topbar{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:14px; }
+  .topbar-title{ flex:1; min-width:0; display:flex; align-items:center; justify-content:center; gap:6px; font-weight:800; font-size:17px; text-align:center; }
+  .topbar-spacer{ width:44px; flex-shrink:0; }
+  .cat-summary{ text-align:center; font-size:13px; color:var(--sub); font-weight:700; margin:-8px 0 14px; }
+  .item-row{
+    display:flex; align-items:flex-start; gap:10px; padding:12px 10px 12px 10px; margin-bottom:10px;
+    background:var(--surface); border:2px solid var(--hair); border-radius:16px;
+  }
+  .item-body{ flex:1; min-width:0; }
+  .item-en{ font-family:var(--font-en); font-size:18px; font-weight:700; line-height:1.35; overflow-wrap:anywhere; -webkit-user-select:text; user-select:text; }
+  .item-ja{ font-size:15px; color:var(--sub); overflow-wrap:anywhere; margin-top:2px; }
+  .item-ex{ margin-top:8px; padding:8px 10px; border-radius:10px; background:var(--track); font-size:14px; line-height:1.5; }
+  .item-ex-en{ font-family:var(--font-en); font-weight:600; overflow-wrap:anywhere; }
+  .item-ex-ja{ display:block; color:var(--sub); font-size:13px; overflow-wrap:anywhere; }
+  .item-note{ display:flex; gap:5px; margin-top:7px; font-size:12.5px; line-height:1.5; color:var(--sub); font-weight:700; }
+  .item-note svg{ flex-shrink:0; margin-top:2px; color:var(--gold); }
+  .item-tags{ display:flex; flex-wrap:wrap; gap:5px; margin-bottom:4px; }
+  .word-pos{ display:inline-flex; align-items:center; height:22px; font-weight:800; font-size:12px; color:var(--pos-text); background:var(--accent-light); border-radius:7px; padding:0 8px; }
+  .indiv-tag{ display:inline-flex; align-items:center; height:22px; font-size:11.5px; font-weight:800; padding:0 8px; border-radius:7px; background:var(--indiv); color:#fff; }
+  .indiv-tag.fav{ background:var(--indiv-light); color:var(--indiv); border:1px solid var(--indiv); }
+  .cat-tag{ display:inline-flex; align-items:center; height:22px; font-size:11.5px; font-weight:800; padding:0 8px; border-radius:7px; background:var(--track); color:var(--sub); }
+  .item-actions{ display:flex; flex-direction:column; align-items:center; gap:6px; flex-shrink:0; }
+  .speak-btn{
+    width:42px; height:42px; border-radius:12px; border:none; border-bottom:3px solid var(--blue-shade);
+    background:var(--blue); color:#fff; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;
+  }
+  .speak-btn:active{ transform:translateY(2px); border-bottom-width:1px; }
+  .speak-btn-sm{ display:inline-flex; align-items:center; justify-content:center; vertical-align:-3px; margin-left:4px; width:26px; height:26px; border:none; border-radius:8px; background:none; color:var(--blue); cursor:pointer; padding:0; }
+  .heart-btn, .row-icon-btn{ width:42px; height:38px; border:none; background:none; color:var(--sub); display:inline-flex; align-items:center; justify-content:center; cursor:pointer; border-radius:10px; }
+  .heart-btn.on{ color:var(--indiv); }
+  .heart-btn.on svg{ animation:heartPop .35s cubic-bezier(.2,.8,.3,1.4); }
+  @keyframes heartPop{ 0%{transform:scale(.6);} 100%{transform:scale(1);} }
+  .row-icon-btn:active, .heart-btn:active{ background:var(--track); }
+  /* 左の「覚えた」チェック(ハングルの卵の個別登録と同じ) */
+  .learn-check{ flex-shrink:0; display:flex; flex-direction:column; align-items:center; gap:2px; border:none; background:none; padding:2px 0; cursor:pointer; }
+  .learn-check-dot{ width:30px; height:30px; border-radius:50%; border:2px solid var(--hair); background:var(--surface); color:transparent; display:flex; align-items:center; justify-content:center; }
+  .learn-check-label{ font-size:10px; font-weight:800; color:var(--sub); white-space:nowrap; }
+  .learn-check.on .learn-check-dot{ background:var(--accent); border-color:var(--accent); color:var(--on-accent); }
+  .learn-check.on .learn-check-label{ color:var(--accent); }
+  .empty-state{ text-align:center; color:var(--sub); padding:36px 16px; font-size:15px; }
+  .hint{ font-size:12.5px; color:var(--sub); font-weight:700; text-align:center; margin:0 0 12px; }
+
+  /* ----- マイ単語帳 ----- */
+  .indiv-add{
+    display:flex; align-items:center; justify-content:center; gap:6px; width:100%; margin-bottom:14px; padding:13px;
+    border:2px solid var(--indiv); border-bottom-width:5px; border-radius:16px; background:var(--indiv-light); color:var(--indiv); font-size:16px; font-weight:800; cursor:pointer;
+  }
+  .indiv-add:active{ transform:translateY(3px); border-bottom-width:2px; }
+  .segmented{ display:flex; background:var(--track); border-radius:14px; padding:3px; gap:3px; margin-bottom:14px; }
+  .segmented button{ flex:1; border:none; background:none; padding:8px 4px; border-radius:11px; font-size:14px; font-weight:700; color:var(--sub); cursor:pointer; }
+  .segmented button.active{ background:var(--indiv); color:#fff; font-weight:800; box-shadow:inset 0 -3px 0 var(--indiv-shade); }
+  .segmented button:disabled{ opacity:.4; cursor:default; }
+  .seg-count{ margin-left:4px; font-size:12px; opacity:.85; }
+  .segmented.accent button.active{ background:var(--accent); color:var(--on-accent); box-shadow:inset 0 -3px 0 var(--accent-shade); }
+
+  .footer-spacer{ height:96px; }
+  .fixed-footer{ position:fixed; left:0; right:0; bottom:0; padding:12px 16px calc(12px + env(safe-area-inset-bottom)); background:linear-gradient(to bottom, transparent, var(--bg) 30%); z-index:20; }
+  .fixed-footer-inner{ max-width:688px; margin:0 auto; }
+  .fixed-footer .btn{ margin-top:0; }
+
+  /* ----- シート(下から出る画面) ----- */
+  .sheet-overlay{ position:fixed; inset:0; background:var(--overlay); z-index:100; display:flex; align-items:flex-end; justify-content:center; animation:fadeIn .18s ease-out; }
+  .sheet{ background:var(--bg); width:100%; max-width:640px; max-height:88vh; overflow-y:auto; border-radius:22px 22px 0 0; padding:18px 18px calc(20px + env(safe-area-inset-bottom)); animation:sheetUp .22s ease-out; }
+  @media (min-width:700px){ .sheet-overlay{ align-items:center; } .sheet{ border-radius:22px; } }
+  .sheet-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+  .sheet-head h1{ margin:0; font-size:19px; }
+  .sheet-lead{ margin:-4px 0 14px; }
+  @keyframes fadeIn{ from{opacity:0;} to{opacity:1;} }
+  @keyframes sheetUp{ from{transform:translateY(24px); opacity:.6;} to{transform:none; opacity:1;} }
+  .opt-label{ font-size:13px; font-weight:800; color:var(--sub); margin:0 0 8px; }
+  .opt-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 0 14px; border-top:1px solid var(--hair); }
+  .opt-row > span{ display:flex; flex-direction:column; gap:2px; font-size:15px; }
+  .opt-row small{ font-size:12px; color:var(--sub); font-weight:700; }
+  .switch{ position:relative; display:inline-block; width:46px; height:28px; flex-shrink:0; }
+  .switch input{ opacity:0; width:0; height:0; position:absolute; }
+  .switch-slider{ position:absolute; inset:0; background:var(--hair); border-radius:999px; cursor:pointer; transition:background .15s ease-out; }
+  .switch-slider::before{ content:""; position:absolute; width:22px; height:22px; left:3px; top:3px; background:#fff; border-radius:50%; transition:transform .15s ease-out; box-shadow:0 1px 2px rgba(0,0,0,.25); }
+  .switch input:checked + .switch-slider{ background:var(--accent); }
+  .switch input:checked + .switch-slider::before{ transform:translateX(18px); }
+  .switch input:disabled + .switch-slider{ opacity:.45; cursor:default; }
+  .switch input:focus-visible + .switch-slider{ outline:2px solid var(--accent); outline-offset:2px; }
+  .settings-group{ margin-bottom:18px; }
+  .settings-group .btn{ margin-top:8px; }
+
+  /* ----- フラッシュカード ----- */
+  .progress-row{ display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+  .progress-label{ flex:1; text-align:right; font-size:14px; color:var(--sub); font-weight:700; }
+  .flash-dots{ height:6px; border-radius:3px; background:var(--track); overflow:hidden; margin:0 0 14px; }
+  .flash-dots-fill{ height:100%; background:var(--fc-tone, var(--accent)); border-radius:3px; transition:width .25s ease-out; }
+  .flashcard-wrap{ perspective:1200px; margin-bottom:12px; touch-action:pan-y; }
+  .flashcard-slide{ will-change:transform; }
+  .flashcard-inner{ position:relative; height:clamp(300px, 50vh, 430px); transition:transform .45s cubic-bezier(.2,.7,.3,1); transform-style:preserve-3d; cursor:pointer; }
+  .flashcard-inner.flipped{ transform:rotateY(180deg); }
+  .flashcard-face{
+    position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden;
+    background:var(--surface); border:2px solid var(--hair); border-bottom-width:6px; border-radius:24px;
+    padding:40px 20px 24px; display:flex; flex-direction:column; text-align:center; overflow-y:auto;
+    -webkit-user-select:none; user-select:none;
+  }
+  .flashcard-back{ transform:rotateY(180deg); }
+  .flashcard-body{ margin:auto 0; display:flex; flex-direction:column; align-items:center; gap:8px; width:100%; }
+  .flash-en-row{ display:flex; align-items:center; justify-content:center; gap:12px; }
+  .flash-en{ font-family:var(--font-en); font-size:28px; font-weight:800; line-height:1.3; overflow-wrap:anywhere; }
+  .flash-en.long{ font-size:22px; }
+  .flash-ja{ font-size:20px; font-weight:700; overflow-wrap:anywhere; }
+  .flashcard-front .flash-ja{ font-size:24px; font-weight:800; line-height:1.4; }
+  .flash-ex{ margin-top:6px; font-size:15px; }
+  .flash-ex-en{ font-family:var(--font-en); font-weight:600; overflow-wrap:anywhere; }
+  .flash-ex-ja{ color:var(--sub); font-size:14px; overflow-wrap:anywhere; }
+  .flash-note{ margin-top:4px; font-size:13px; color:var(--sub); font-weight:700; overflow-wrap:anywhere; }
+  .flash-corner{ position:absolute; top:10px; right:12px; background:none; border:none; color:var(--sub); font-size:13px; font-weight:700; padding:6px 8px; cursor:pointer; }
+  .flash-corner-left{ position:absolute; top:12px; left:14px; font-size:12px; color:var(--sub); font-weight:700; }
+  .flash-tap{ font-size:13px; color:var(--sub); font-weight:700; margin-top:6px; }
+  .flash-in-right{ animation:flashInRight .22s ease-out; }
+  .flash-in-left{ animation:flashInLeft .22s ease-out; }
+  @keyframes flashInRight{ from{ transform:translateX(40%); opacity:0; } to{ transform:none; opacity:1; } }
+  @keyframes flashInLeft{ from{ transform:translateX(-40%); opacity:0; } to{ transform:none; opacity:1; } }
+  .flash-learn-row{ display:flex; justify-content:center; margin:0 0 4px; }
+  .learn-chip{ display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:999px; border:2px solid var(--hair); background:var(--surface); color:var(--sub); font-size:14px; font-weight:800; cursor:pointer; }
+  .learn-chip .dot{ width:20px; height:20px; border-radius:50%; border:2px solid var(--hair); display:flex; align-items:center; justify-content:center; color:transparent; }
+  .learn-chip.on{ border-color:var(--accent); color:var(--accent); background:var(--accent-light); }
+  .learn-chip.on .dot{ background:var(--accent); border-color:var(--accent); color:var(--on-accent); }
+  .flash-hint{ text-align:center; font-size:12px; font-weight:700; color:var(--sub); margin:6px 0 10px; }
+  .flash-nav{ display:flex; gap:10px; }
+  .flash-nav .btn{ margin-top:0; display:flex; align-items:center; justify-content:center; gap:4px; }
+  .flash-nav .btn.secondary{ flex:0 0 38%; }
+  .flash-end{ display:flex; flex-direction:column; align-items:center; text-align:center; padding:36px 0 18px; }
+  .flash-end-mark{ width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-bottom:10px; }
+  @media (prefers-reduced-motion: reduce){
+    .flash-in-right, .flash-in-left, .heart-btn.on svg, .sheet{ animation:none; }
+    .flashcard-inner{ transition:none; }
+  }
+
+  /* ----- メニュー・トースト ----- */
+  .pop-menu{ position:absolute; z-index:60; min-width:220px; background:var(--surface); border:1.5px solid var(--hair); border-radius:14px; padding:6px; box-shadow:0 8px 24px rgba(0,0,0,.14); }
+  .pop-menu button{ display:block; width:100%; text-align:left; padding:11px 12px; border:none; background:none; font-size:15px; font-weight:700; border-radius:10px; cursor:pointer; }
+  .pop-menu button:active, .pop-menu button:hover{ background:var(--track); }
+  .toast{
+    position:fixed; left:50%; bottom:calc(110px + env(safe-area-inset-bottom)); transform:translate(-50%, 12px); opacity:0; pointer-events:none;
+    background:var(--text); color:var(--bg); font-size:14px; font-weight:700; padding:10px 18px; border-radius:999px; z-index:200; width:max-content;
+    transition:opacity .2s ease-out, transform .2s ease-out; max-width:calc(100% - 32px); text-align:center;
+  }
+  .toast.show{ opacity:1; transform:translate(-50%, 0); }
+  :focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+  /* ----- 追加画面の英語の候補 ----- */
+  .text-input.big{ font-size:18px; padding:13px 14px; }
+  .suggest-box{ margin:-6px 0 14px; padding:10px; border-radius:14px; background:var(--indiv-light); border:1.5px solid var(--indiv); }
+  .suggest-head{ display:flex; justify-content:space-between; align-items:baseline; font-size:12.5px; font-weight:800; color:var(--indiv); margin:0 2px 8px; }
+  .suggest-head small{ font-size:11.5px; color:var(--sub); }
+  .suggest-item{ display:flex; align-items:center; gap:8px; width:100%; text-align:left; padding:9px 12px; margin-bottom:6px; border:2px solid var(--hair); border-bottom-width:4px; border-radius:12px; background:var(--surface); cursor:pointer; }
+  .suggest-item:active{ transform:translateY(2px); border-bottom-width:2px; }
+  .suggest-item.picked{ border-color:var(--indiv); }
+  .s-text{ flex:1; min-width:0; display:flex; flex-direction:column; }
+  .s-en{ font-family:var(--font-en); font-weight:700; font-size:16px; overflow-wrap:anywhere; }
+  .s-ja{ font-size:12px; color:var(--sub); font-weight:700; }
+  .s-tag{ font-size:11px; font-weight:800; padding:1px 7px; border-radius:7px; background:var(--accent-light); color:var(--accent); flex-shrink:0; }
+  .suggest-status{ font-size:12.5px; color:var(--sub); font-weight:700; padding:2px 2px 4px; }
+  .suggest-credit{ font-size:11px; color:var(--sub); font-weight:700; margin:2px 2px 0; }
+  .more-toggle{ display:block; width:100%; margin:0 0 4px; padding:10px; border:none; background:none; color:var(--accent); font-size:14px; font-weight:800; cursor:pointer; }
+
+  /* ----- 発音チェック ----- */
+  .footer-2{ display:flex; gap:10px; }
+  .footer-2 .btn{ display:flex; align-items:center; justify-content:center; gap:6px; font-size:16px; padding:14px 8px; }
+  .btn.btn-mic{ background:var(--blue); border-bottom-color:var(--blue-shade); color:#fff; }
+  .pron-card{ background:var(--surface); border:2px solid var(--hair); border-bottom-width:6px; border-radius:24px; padding:20px 18px 16px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .pron-en{ font-family:var(--font-en); font-size:30px; font-weight:800; line-height:1.25; overflow-wrap:anywhere; }
+  .pron-en.long{ font-size:23px; }
+  .pron-ja{ font-size:15px; color:var(--sub); font-weight:700; overflow-wrap:anywhere; }
+  .pron-listen{ display:flex; gap:8px; width:100%; margin-top:12px; }
+  .pron-listen .btn{ margin:0; padding:9px 8px; font-size:14px; display:flex; align-items:center; justify-content:center; gap:5px; border-bottom-width:4px; }
+  .pron-mic-area{ display:flex; flex-direction:column; align-items:center; padding:18px 0 8px; }
+  .mic-btn{ width:84px; height:84px; border-radius:50%; border:none; border-bottom:5px solid var(--blue-shade); background:var(--blue); color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .mic-btn:active{ transform:translateY(3px); border-bottom-width:2px; }
+  .mic-btn.listening{ background:var(--danger); border-bottom-color:rgba(0,0,0,.3); animation:micPulse 1.2s ease-in-out infinite; }
+  @keyframes micPulse{ 0%,100%{ box-shadow:0 0 0 0 rgba(201,53,47,.45); } 50%{ box-shadow:0 0 0 16px rgba(201,53,47,0); } }
+  .mic-label{ margin:10px 0 0; font-size:14px; font-weight:800; color:var(--sub); text-align:center; }
+  .mic-interim{ margin:4px 0 0; min-height:22px; font-family:var(--font-en); font-size:15px; text-align:center; overflow-wrap:anywhere; }
+  .pron-result{ border-radius:20px; padding:14px 16px; margin-bottom:12px; text-align:center; animation:fadeIn .2s ease-out; }
+  .pron-result.great, .pron-result.good{ background:var(--accent-light); color:var(--accent); }
+  .pron-result.close{ background:var(--gold-light); color:var(--gold); }
+  .pron-result.retry{ background:var(--indiv-light); color:var(--indiv); }
+  .pron-score b{ font-size:46px; font-weight:800; line-height:1; }
+  .pron-score span{ font-size:16px; font-weight:800; margin-left:2px; }
+  .pron-verdict{ font-size:16px; font-weight:800; margin-top:2px; }
+  .pron-words{ font-family:var(--font-en); font-size:18px; font-weight:700; margin-top:8px; display:flex; flex-wrap:wrap; justify-content:center; gap:2px 7px; color:var(--text); }
+  .pron-words .miss{ color:var(--danger); text-decoration:underline wavy; text-underline-offset:5px; }
+  .pron-heard{ font-size:13px; color:var(--sub); font-weight:700; margin-top:6px; overflow-wrap:anywhere; }
+  .pron-foot{ text-align:center; font-size:11.5px; color:var(--sub); margin:12px 0 0; }
+  .pron-tag{ display:inline-flex; align-items:center; height:22px; font-size:11.5px; font-weight:800; padding:0 8px; border-radius:7px; background:var(--blue-light); color:var(--blue); }
+  @media (prefers-reduced-motion: reduce){ .mic-btn.listening{ animation:none; } }
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+<script src="phrases-data.js"></script>
+<!-- お手本音声(AI音声)の一覧。tools/make-audio.mjs が作る -->
+<script src="audio/manifest.js"></script>
+<script>
+"use strict";
+/* ベビー用品店の接客英語アプリ(Webアプリ版)。
+   「ハングルの卵」の個別登録(自作単語+お気に入り・検索・覚えたチェック・フラッシュカード・バックアップ)を
+   取り出し、最初から入っている接客フレーズ集と組み合わせたもの。
+   データはこの端末のブラウザ(localStorage)にだけ保存する。サーバーには何も送らない。 */
+
+const STORE_KEY = "babyShopEnglish.v1";
+const app = document.getElementById("app");
+
+/* ===================== 収録データ ===================== */
+const CATEGORIES = PHRASE_BOOK.map(c => ({ id:c.id, kind:c.kind, icon:c.icon, name:c.name, desc:c.desc || "" }));
+const BUILTIN = [];
+PHRASE_BOOK.forEach(c => c.items.forEach((row, i) => {
+  const id = `${c.id}-${i + 1}`;
+  if(c.kind === "phrase"){
+    const [en, ja, note] = row;
+    BUILTIN.push({ id, cat:c.id, en, ja, pos:"", ex_en:"", ex_ja:"", note:note || "" });
+  } else {
+    const [en, ja, pos, ex_en, ex_ja, note] = row;
+    BUILTIN.push({ id, cat:c.id, en, ja, pos:pos || "", ex_en:ex_en || "", ex_ja:ex_ja || "", note:note || "" });
+  }
+}));
+const BUILTIN_MAP = new Map(BUILTIN.map(w => [w.id, w]));
+const catById = id => CATEGORIES.find(c => c.id === id);
+const itemsOfCat = id => BUILTIN.filter(w => w.cat === id);
+
+/* ===================== 保存データ ===================== */
+function defaultState(){
+  return {
+    favorites: [],      // ♡を押した収録フレーズのid(マイ単語帳の「お気に入り」)
+    customWords: [],    // 自作単語: {id:"c1", en, ja, pos, ex_en, ex_ja, note}
+    nextCustomId: 1,
+    learned: [],        // 「覚えた」にしたid(収録・自作どちらも)
+    seenAt: {},         // id -> 最後にフラッシュカードで見た順番。長く見ていないものから出すのに使う
+    seenCount: 0,
+    flashFront: "en",   // フラッシュカードの表の面: "en" | "ja"
+    speechRate: "normal", // "normal" | "slow"
+    autoSpeak: true,    // フラッシュカードで英語が見えたら読み上げる
+    pron: {}            // 発音チェックの記録: id -> {n:回数, ok:80点以上の回数, best:最高点}
+  };
+}
+const asStr = v => typeof v === "string" ? v : "";
+// 自作単語は、保存データ・バックアップのどちらから来ても同じ検証を通す(壊れたデータで画面が落ちないように)
+function sanitizeCustomWords(list){
+  if(!Array.isArray(list)) return [];
+  const seen = new Set();
+  return list
+    .filter(w => w && typeof w === "object" && /^c\d+$/.test(asStr(w.id)) && asStr(w.en).trim() && asStr(w.ja).trim())
+    .filter(w => !seen.has(w.id) && seen.add(w.id))
+    .map(w => ({
+      id: w.id, en: asStr(w.en).slice(0, 120), ja: asStr(w.ja).slice(0, 120), pos: asStr(w.pos).slice(0, 30),
+      ex_en: asStr(w.ex_en).slice(0, 200), ex_ja: asStr(w.ex_ja).slice(0, 200), note: asStr(w.note).slice(0, 200)
+    }));
+}
+function nextIdAfter(words){
+  return words.reduce((max, w) => Math.max(max, parseInt(w.id.slice(1), 10) || 0), 0) + 1;
+}
+function loadState(){
+  const base = defaultState();
+  let saved = null;
+  try{ saved = JSON.parse(localStorage.getItem(STORE_KEY) || "null"); }catch(e){ saved = null; }
+  if(!saved || typeof saved !== "object") return base;
+  for(const k of Object.keys(base)){
+    const v = saved[k];
+    if(v === undefined || v === null) continue;
+    if(Array.isArray(base[k]) !== Array.isArray(v)) continue;
+    if(typeof base[k] !== typeof v) continue;
+    base[k] = v;
+  }
+  base.customWords = sanitizeCustomWords(base.customWords);
+  base.favorites = [...new Set(base.favorites.filter(id => typeof id === "string" && BUILTIN_MAP.has(id)))];
+  base.learned = [...new Set(base.learned.filter(id => typeof id === "string"))];
+  const pronOk = v => v && typeof v === "object" && [v.n, v.ok, v.best].every(x => Number.isFinite(x));
+  base.pron = Object.fromEntries(Object.entries(base.pron).filter(([, v]) => pronOk(v)));
+  base.nextCustomId = Math.max(base.nextCustomId, nextIdAfter(base.customWords));
+  return base;
+}
+let state = loadState();
+let saveWarned = false;
+function saveState(){
+  try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+  catch(e){
+    if(!saveWarned){ saveWarned = true; toast("保存できませんでした（プライベートブラウズでは保存されません）"); }
+  }
+}
+
+/* ===================== マイ単語帳(自作+お気に入り) ===================== */
+const isCustom = w => !BUILTIN_MAP.has(w.id);
+const isFav = w => state.favorites.includes(w.id);
+const isLearned = w => state.learned.includes(w.id);
+function findEntry(id){ return BUILTIN_MAP.get(id) || state.customWords.find(w => w.id === id) || null; }
+function getMyEntries(filter){
+  const f = filter || "all";
+  const custom = f === "favorite" ? [] : state.customWords.slice().reverse();
+  const favs = f === "custom" ? [] : state.favorites.map(id => BUILTIN_MAP.get(id)).filter(Boolean).reverse();
+  return [...custom, ...favs];
+}
+function toggleFav(w){
+  const i = state.favorites.indexOf(w.id);
+  if(i >= 0) state.favorites.splice(i, 1); else state.favorites.push(w.id);
+  saveState();
+  return i < 0;
+}
+function toggleLearned(w){
+  const i = state.learned.indexOf(w.id);
+  if(i >= 0) state.learned.splice(i, 1); else state.learned.push(w.id);
+  saveState();
+  return i < 0;
+}
+function removeCustomWord(id){
+  state.customWords = state.customWords.filter(w => w.id !== id);
+  state.learned = state.learned.filter(x => x !== id);
+  delete state.seenAt[id];
+  delete state.pron[id];
+  saveState();
+}
+
+/* ===================== ユーティリティ ===================== */
+function esc(s){ return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+// 重複チェック用: 大文字小文字・前後の句読点・空白の違いは同じとみなす
+function normEn(s){ return String(s || "").toLowerCase().replace(/[’‘]/g, "'").replace(/[.,!?。、！？]+/g, " ").replace(/\s+/g, " ").trim(); }
+function matchesQuery(w, q){
+  if(!q) return true;
+  return [w.en, w.ja, w.pos, w.ex_en, w.ex_ja, w.note].join("\n").toLowerCase().includes(q);
+}
+function toast(msg){
+  let t = document.getElementById("toast");
+  if(!t){ t = document.createElement("div"); t.id = "toast"; t.className = "toast"; t.setAttribute("role", "status"); document.body.appendChild(t); }
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => t.classList.remove("show"), 1800);
+}
+
+/* ===================== アイコン ===================== */
+const ICON = {
+  speaker: s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="display:block;"><path d="M4 9v6h4l5 4V5L8 9H4Z" fill="currentColor"/><path d="M15.5 8.5a5 5 0 0 1 0 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M18 6a8.5 8.5 0 0 1 0 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" opacity=".55"/></svg>`,
+  heart: (s, filled) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden="true" style="display:block;"><path d="M12 20.3s-7.6-4.6-9.2-9.3C1.7 7.6 3.9 4.6 7.1 4.6c2 0 3.6 1.1 4.9 2.9 1.3-1.8 2.9-2.9 4.9-2.9 3.2 0 5.4 3 4.3 6.4-1.6 4.7-9.2 9.3-9.2 9.3Z" fill="${filled ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>`,
+  search: s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" stroke-width="2.4"/><path d="m15.5 15.5 5 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>`,
+  plus: s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden="true" style="display:block; flex-shrink:0;"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/></svg>`,
+  close: s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden="true" style="display:block;"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>`,
+  pencil: s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="display:block;"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4Z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="m13.5 6.5 4 4" stroke="currentColor" stroke-width="2.2"/></svg>`,
+  check: s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="display:block;"><path d="m5 12.5 4.5 4.5L19 7.5" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  left: s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="display:block;"><path d="m15 5-7 7 7 7" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  right: s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="display:block;"><path d="m9 5 7 7-7 7" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  sliders: s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="display:block;"><path d="M4 7h10M18 7h2M4 17h4M12 17h8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="16" cy="7" r="2.3" stroke="currentColor" stroke-width="2.2"/><circle cx="10" cy="17" r="2.3" stroke="currentColor" stroke-width="2.2"/></svg>`,
+  dots: s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden="true" style="display:block;"><circle cx="5" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="19" cy="12" r="2" fill="currentColor"/></svg>`,
+  bulb: s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  mic: s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="display:block; flex-shrink:0;"><rect x="8.5" y="2.5" width="7" height="12" rx="3.5" fill="currentColor"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>`,
+  cards: s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="display:block;"><rect x="3" y="6" width="14" height="14" rx="3" stroke="currentColor" stroke-width="2.2"/><path d="M7 3h11a3 3 0 0 1 3 3v11" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>`
+};
+
+/* ===================== 読み上げ(ブラウザ標準の音声合成) ===================== */
+const NOVELTY_VOICE_NAMES = /albert|bad news|bahh|bells|boing|bubbles|cellos|wobble|good news|jester|organ|superstar|trinoids|whisper|zarvox|grandma|grandpa|eddy|flo|reed|rocko|sandy|shelley/i;
+let cachedVoice = null;
+function bestVoice(){
+  if(cachedVoice) return cachedVoice;
+  if(!("speechSynthesis" in window)) return null;
+  const all = window.speechSynthesis.getVoices().filter(v => /^en([-_]|$)/i.test(v.lang || ""));
+  if(all.length === 0) return null;
+  const normal = all.filter(v => !NOVELTY_VOICE_NAMES.test(v.name));
+  const us = normal.filter(v => /^en[-_]us/i.test(v.lang));
+  const pool = us.length ? us : (normal.length ? normal : all);
+  cachedVoice = pool.find(v => /(enhanced|premium)/i.test(v.name))
+    || pool.find(v => /samantha|ava|allison|google us english|aria|jenny/i.test(v.name))
+    || pool.find(v => v.localService)
+    || pool[0];
+  return cachedVoice;
+}
+if("speechSynthesis" in window) window.speechSynthesis.onvoiceschanged = () => { cachedVoice = null; };
+function speak(text, slow){
+  if(!text) return;
+  stopSpeech();
+  if(!("speechSynthesis" in window)){ toast("このブラウザでは読み上げが使えません"); return; }
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "en-US";
+  const v = bestVoice();
+  if(v){ u.voice = v; u.lang = v.lang; }
+  u.rate = (slow || state.speechRate === "slow") ? 0.7 : 0.95;
+  window.speechSynthesis.speak(u);
+}
+function stopSpeech(){
+  if("speechSynthesis" in window) window.speechSynthesis.cancel();
+  if(currentAudio){ currentAudio.pause(); currentAudio = null; }
+}
+/* 収録済みの単語・例文は、AIで作ったお手本音声(audio/)を鳴らす。音声ファイルが無いもの(自作単語・音声を作る前に足した項目)や、
+   文言を書き換えて音声と合わなくなったものは、端末の読み上げにする */
+let currentAudio = null;
+const AUDIO = window.AUDIO_MANIFEST || {};
+function audioFileFor(w, part){
+  const a = !isCustom(w) && AUDIO[w.id] && AUDIO[w.id][part];
+  return a && a.text === (part === "ex" ? w.ex_en : w.en) ? a.file : null;
+}
+function playEntry(w, part, slow){
+  const text = part === "ex" ? w.ex_en : w.en;
+  if(!text) return;
+  const file = audioFileFor(w, part);
+  if(!file){ speak(text, slow); return; }
+  stopSpeech();
+  const a = new Audio("audio/" + file);
+  a.playbackRate = (slow || state.speechRate === "slow") ? 0.75 : 1;
+  a.preservesPitch = true;
+  currentAudio = a;
+  a.play().catch(() => { if(currentAudio === a) speak(text, slow); });
+}
+
+/* ===================== 画面の切り替え ===================== */
+let view = "home";        // "home" | "cat" | "my" | "flash"
+let currentCatId = null;
+let homeQuery = "";
+let myFilter = "all";     // "all" | "custom" | "favorite"
+let myQuery = "";
+let flash = null;         // フラッシュカードの進行
+let flashControls = null; // キーボード操作用(フラッシュカード表示中だけ入る)
+
+function render(){
+  stopSpeech();
+  stopListening();
+  closePopMenu();
+  flashControls = null;
+  if(view === "cat") renderCategory();
+  else if(view === "my") renderMy();
+  else if(view === "flash") renderFlashcard();
+  else if(view === "pron") renderPron();
+  else renderHome();
+}
+function go(next){
+  view = next;
+  render();
+  window.scrollTo(0, 0);
+}
+
+/* ===================== 行(収録・自作共通) ===================== */
+// mode: "browse"(カテゴリ・検索。♡を出す) / "my"(マイ単語帳。「覚えた」チェック・編集・削除を出す)
+// 「覚えた」チェックはマイ単語帳だけに置く(カテゴリの一覧にまで並べると、どれが何のボタンか分かりにくいため)
+function itemRow(w, mode, opts){
+  opts = opts || {};
+  const custom = isCustom(w);
+  const learned = isLearned(w);
+  const id = esc(w.id);
+  const tags = [];
+  if(opts.showSource){
+    if(custom) tags.push(`<span class="indiv-tag">自作</span>`);
+    else if(mode === "my") tags.push(`<span class="indiv-tag fav">お気に入り</span>`);
+    if(!custom){ const c = catById(w.cat); if(c) tags.push(`<span class="cat-tag">${esc(c.name)}</span>`); }
+  }
+  if(state.pron[w.id]) tags.push(`<span class="pron-tag">発音 ${state.pron[w.id].best}点</span>`);
+  const hasDetails = !!(w.ex_en || w.ex_ja || w.note);
+  const actions = mode === "my"
+    ? `<button class="speak-btn" data-act="speak" aria-label="発音を聞く">${ICON.speaker(18)}</button>
+       ${custom
+         ? `<button class="row-icon-btn" data-act="edit" aria-label="編集">${ICON.pencil(17)}</button>`
+         : ""}
+       <button class="row-icon-btn" data-act="remove" aria-label="${custom ? "削除" : "マイ単語帳から外す"}">${ICON.close(15)}</button>`
+    : `<button class="speak-btn" data-act="speak" aria-label="発音を聞く">${ICON.speaker(18)}</button>
+       <button class="heart-btn${isFav(w) ? " on" : ""}" data-act="fav" aria-pressed="${isFav(w)}" aria-label="マイ単語帳に入れる">${ICON.heart(22, isFav(w))}</button>`;
+  return `
+    <div class="item-row" data-id="${id}" data-q="${esc([w.en, w.ja, w.pos, w.ex_en, w.ex_ja, w.note].join("\n").toLowerCase())}">
+      ${mode === "my" ? `<button class="learn-check${learned ? " on" : ""}" data-act="learn" aria-pressed="${learned}" aria-label="覚えた"><span class="learn-check-dot">${ICON.check(15)}</span><span class="learn-check-label">覚えた</span></button>` : ""}
+      <div class="item-body${hasDetails ? " has-details" : ""}"${hasDetails ? ` data-toggle aria-expanded="false"` : ""}>
+        ${tags.length ? `<div class="item-tags">${tags.join("")}</div>` : ""}
+        <div class="item-en"><span lang="en">${esc(w.en)}</span>${w.pos ? `<span class="word-pos">${esc(w.pos)}</span>` : ""}</div>
+        <div class="item-ja">${esc(w.ja)}</div>
+        ${hasDetails ? `<span class="item-more">${w.ex_en || w.ex_ja ? "例文" : "メモ"}を見る ▾</span>` : ""}
+        <div class="item-details">
+          ${w.ex_en || w.ex_ja ? `<div class="item-ex">${w.ex_en ? `<span class="item-ex-en" lang="en">${esc(w.ex_en)}</span><button class="speak-btn-sm" data-act="speak-ex" aria-label="例文を聞く">${ICON.speaker(15)}</button>` : ""}${w.ex_ja ? `<span class="item-ex-ja">${esc(w.ex_ja)}</span>` : ""}</div>` : ""}
+          ${w.note ? `<div class="item-note">${ICON.bulb(14)}<span>${esc(w.note)}</span></div>` : ""}
+        </div>
+      </div>
+      <div class="item-actions">${actions}</div>
+    </div>`;
+}
+// 行のボタンは一覧の要素にまとめて付ける(描き直さずに見た目だけ変えて、検索中のキーボードを閉じない)
+function bindRows(container, hooks){
+  hooks = hooks || {};
+  container.addEventListener("click", e => {
+    const btn = e.target.closest("[data-act]");
+    if(!btn || !container.contains(btn)){
+      // 行の文字の部分をタップしたら、例文・メモを開け閉めする(英語を選択してコピーしているときは開閉しない)
+      const toggle = e.target.closest("[data-toggle]");
+      if(toggle && container.contains(toggle) && !String(window.getSelection && window.getSelection()).trim()){
+        const open = toggle.closest(".item-row").classList.toggle("open");
+        toggle.setAttribute("aria-expanded", open);
+      }
+      return;
+    }
+    const row = btn.closest(".item-row");
+    const w = row && findEntry(row.dataset.id);
+    if(!w) return;
+    const act = btn.dataset.act;
+    if(act === "speak") playEntry(w, "word");
+    else if(act === "speak-ex") playEntry(w, "ex");
+    else if(act === "fav"){
+      const on = toggleFav(w);
+      btn.classList.toggle("on", on);
+      btn.setAttribute("aria-pressed", on);
+      btn.innerHTML = ICON.heart(22, on);
+      toast(on ? "マイ単語帳に入れました" : "マイ単語帳から外しました");
+      if(hooks.onChange) hooks.onChange();
+    } else if(act === "learn"){
+      const on = toggleLearned(w);
+      btn.classList.toggle("on", on);
+      btn.setAttribute("aria-pressed", on);
+      if(hooks.onChange) hooks.onChange();
+    } else if(act === "edit" && hooks.onEdit) hooks.onEdit(w);
+    else if(act === "remove" && hooks.onRemove) hooks.onRemove(w);
+  });
+}
+// 一覧の絞り込み: 行の表示だけ切り替える
+function filterRows(container, query, noHitEl){
+  const q = query.trim().toLowerCase();
+  let hits = 0;
+  container.querySelectorAll(".item-row").forEach(row => {
+    const show = !q || row.dataset.q.includes(q);
+    row.style.display = show ? "" : "none";
+    if(show) hits++;
+  });
+  if(noHitEl) noHitEl.style.display = hits === 0 && q ? "" : "none";
+  return hits;
+}
+
+/* ===================== ホーム ===================== */
+function renderHome(){
+  const myCount = getMyEntries("all").length;
+  const customCount = state.customWords.length;
+  app.innerHTML = `
+    <header class="home-head">
+      <div>
+        <div class="brand">ベビー接客えいご</div>
+        <div class="brand-sub">ベビーカー・ベビー用品の売り場で使える英語</div>
+      </div>
+      <button class="icon-btn" id="btnSettings" aria-label="設定">${ICON.sliders(22)}</button>
+    </header>
+    <section class="my-card">
+      <button class="my-card-main" id="btnOpenMy">
+        <span class="my-card-icon">${ICON.heart(24, true)}</span>
+        <span class="my-card-text"><b>マイ単語帳</b><small>${myCount === 0 ? "自分で追加した単語と、♡を押した単語が入ります" : `${myCount}語（自作 ${customCount}・お気に入り ${myCount - customCount}）`}</small></span>
+        <span class="my-card-arrow">${ICON.right(20)}</span>
+      </button>
+      <div class="my-card-actions">
+        <button class="btn btn-indiv" id="btnQuickAdd" style="display:flex; align-items:center; justify-content:center; gap:4px;">${ICON.plus(16)}単語を追加</button>
+        <button class="btn btn-outline" id="btnMyFlash" ${myCount === 0 ? "disabled" : ""}>カードで復習</button>
+      </div>
+    </section>
+    <div class="search-box">${ICON.search(18)}<input type="search" id="homeSearch" class="text-input" placeholder="英語・日本語で探す" value="${esc(homeQuery)}" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" aria-label="フレーズを検索"></div>
+    <div id="homeBody"></div>
+  `;
+  document.getElementById("btnSettings").onclick = showSettingsSheet;
+  document.getElementById("btnOpenMy").onclick = () => go("my");
+  document.getElementById("btnQuickAdd").onclick = () => showAddWordSheet(null, () => renderHome());
+  document.getElementById("btnMyFlash").onclick = () => { myFilter = "all"; startFlash(getMyEntries("all"), "マイ単語帳", { view:"home" }, "indiv"); };
+  const input = document.getElementById("homeSearch");
+  input.oninput = () => { homeQuery = input.value; renderHomeBody(); };
+  input.addEventListener("keydown", e => { if(e.key === "Enter" && !e.isComposing) input.blur(); });
+  renderHomeBody();
+}
+function renderHomeBody(){
+  const body = document.getElementById("homeBody");
+  const q = homeQuery.trim().toLowerCase();
+  if(q){
+    const hits = [...state.customWords.slice().reverse(), ...BUILTIN].filter(w => matchesQuery(w, q));
+    body.innerHTML = hits.length === 0
+      ? `<div class="empty-state">「${esc(homeQuery.trim())}」に一致するフレーズはありません。<br><button class="btn btn-indiv" id="btnAddFromSearch" style="margin-top:16px;">マイ単語帳に追加する</button></div>`
+      : `<div class="section-title">検索結果<small>${hits.length}件</small></div><div id="searchRows">${hits.map(w => isCustom(w) ? itemRow(w, "my", { showSource:true }) : itemRow(w, "browse", { showSource:true })).join("")}</div>`;
+    const rows = document.getElementById("searchRows");
+    if(rows) bindRows(rows, {
+      onEdit: w => showAddWordSheet(w, () => renderHomeBody()),
+      onRemove: w => { if(confirmRemoveCustom(w)) renderHomeBody(); }
+    });
+    const addBtn = document.getElementById("btnAddFromSearch");
+    if(addBtn) addBtn.onclick = () => showAddWordSheet(null, () => renderHome(), guessPrefill(homeQuery.trim()));
+    return;
+  }
+  const tile = c => {
+    const items = itemsOfCat(c.id);
+    const learned = items.filter(isLearned).length;
+    return `<button class="cat-tile" data-cat="${c.id}">
+      <span class="cat-icon" aria-hidden="true">${c.icon}</span>
+      <span class="cat-text">
+        <span class="cat-name">${esc(c.name)}</span>
+        <span class="cat-desc">${esc(c.desc)}</span>
+      </span>
+      <span class="cat-count">${items.length}${c.kind === "phrase" ? "フレーズ" : "語"}${learned ? `<span class="learned">覚えた ${learned}</span>` : ""}</span>
+    </button>`;
+  };
+  body.innerHTML = `
+    <div class="cat-list">${CATEGORIES.map(tile).join("")}</div>
+    <p class="home-foot">データはこの端末のブラウザにだけ保存されます</p>
+  `;
+  body.querySelectorAll("[data-cat]").forEach(b => b.onclick = () => { currentCatId = b.dataset.cat; go("cat"); });
+}
+// 検索で見つからなかった言葉を、英語か日本語かで振り分けて追加画面に入れておく
+function guessPrefill(text){
+  return /[ぁ-んァ-ヶ一-龠々ー]/.test(text) ? { ja:text } : { en:text };
+}
+
+/* ===================== カテゴリ ===================== */
+function renderCategory(){
+  const c = catById(currentCatId);
+  if(!c){ go("home"); return; }
+  const items = itemsOfCat(c.id);
+  const summary = () => {
+    const learned = items.filter(isLearned).length;
+    const fav = items.filter(isFav).length;
+    const rate = pronRate(items);
+    return `${items.length}${c.kind === "phrase" ? "フレーズ" : "語"}・覚えた ${learned}${fav ? `・♡ ${fav}` : ""}${rate === null ? "" : `・発音の正答率 ${rate}%`}`;
+  };
+  app.innerHTML = `
+    <div class="topbar">
+      <button class="icon-btn" id="btnBack" aria-label="戻る">${ICON.left(22)}</button>
+      <div class="topbar-title"><span aria-hidden="true">${c.icon}</span><span>${esc(c.name)}</span></div>
+      <div class="topbar-spacer"></div>
+    </div>
+    <p class="cat-summary" id="catSummary">${summary()}</p>
+    <p class="hint">タップで例文、♡でマイ単語帳へ</p>
+    <div id="catRows">${items.map(w => itemRow(w, "browse")).join("")}</div>
+    <div class="footer-spacer"></div>
+    <div class="fixed-footer"><div class="fixed-footer-inner footer-2">
+      <button class="btn" id="btnCatFlash">${ICON.cards(18)}カードで覚える</button>
+      <button class="btn btn-mic" id="btnCatPron">${ICON.mic(18)}発音チェック</button>
+    </div></div>
+  `;
+  document.getElementById("btnBack").onclick = () => go("home");
+  bindRows(document.getElementById("catRows"), { onChange: () => { document.getElementById("catSummary").textContent = summary(); } });
+  document.getElementById("btnCatFlash").onclick = () => startFlash(items, c.name, { view:"cat", catId:c.id }, "accent");
+  document.getElementById("btnCatPron").onclick = () => startPron(items, c.name, { view:"cat", catId:c.id }, "accent");
+}
+
+/* ===================== マイ単語帳 ===================== */
+function renderMy(){
+  const counts = { all:getMyEntries("all").length, custom:state.customWords.length, favorite:getMyEntries("favorite").length };
+  // 選んでいた絞り込みが空になったら(最後の1語を消した等)「すべて」に戻す
+  if(myFilter !== "all" && counts[myFilter] === 0) myFilter = "all";
+  const entries = getMyEntries(myFilter);
+  const labels = { all:"すべて", custom:"自作", favorite:"お気に入り" };
+  const emptyMessages = {
+    all: "自分で追加した単語や、一覧で♡を押した単語がここに並びます。<br>お客さまに言われた言葉や、自分の店の商品の言い方をどんどん登録しましょう。",
+    custom: "自作した単語はまだありません。",
+    favorite: "お気に入りはまだありません。一覧の♡から追加できます。"
+  };
+  const learnedCount = entries.filter(isLearned).length;
+  app.innerHTML = `
+    <div class="topbar">
+      <button class="icon-btn" id="btnBack" aria-label="戻る">${ICON.left(22)}</button>
+      <div class="topbar-title" style="color:var(--indiv);">${ICON.heart(17, false)}<span style="color:var(--text);">マイ単語帳</span></div>
+      <!-- バックアップはめったに使わないので右上の「…」にしまう -->
+      <button class="icon-btn" id="btnMyMenu" aria-label="その他のメニュー" aria-haspopup="true">${ICON.dots(20)}</button>
+    </div>
+    <button class="indiv-add" id="btnAdd">${ICON.plus(16)}単語を追加する</button>
+    ${counts.all === 0 ? "" : `
+      <div class="segmented" id="myFilter" role="tablist">
+        ${["all", "custom", "favorite"].map(k => `<button data-filter="${k}" role="tab" aria-selected="${myFilter === k}" class="${myFilter === k ? "active" : ""}" ${counts[k] === 0 ? "disabled" : ""}>${labels[k]}<span class="seg-count">${counts[k]}</span></button>`).join("")}
+      </div>
+      <div class="search-box" style="margin-bottom:12px;">${ICON.search(18)}<input type="search" id="mySearch" class="text-input" placeholder="単語・意味で検索" value="${esc(myQuery)}" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" aria-label="マイ単語帳を検索"></div>`}
+    ${entries.length === 0 ? `<div class="empty-state">${emptyMessages[myFilter]}</div>` : `
+      ${state.learned.length === 0 ? `<p class="hint">覚えたら、左の「覚えた」にチェックしておきましょう。</p>` : `<p class="hint">覚えた ${learnedCount} / ${entries.length}</p>`}
+      <div id="myRows">${entries.map(w => itemRow(w, "my", { showSource: myFilter === "all" })).join("")}</div>
+      <div class="empty-state" id="myNoHit" style="display:none; padding:24px 16px;">一致する単語はありません。</div>
+      <div class="footer-spacer"></div>
+      <div class="fixed-footer"><div class="fixed-footer-inner footer-2">
+        <button class="btn btn-indiv" id="btnMyFlash">${ICON.cards(18)}カードで復習</button>
+        <button class="btn btn-mic" id="btnMyPron">${ICON.mic(18)}発音チェック</button>
+      </div></div>`}
+  `;
+  document.getElementById("btnBack").onclick = () => go("home");
+  document.getElementById("btnAdd").onclick = () => showAddWordSheet(null, () => renderMy());
+  document.getElementById("btnMyMenu").onclick = e => { e.stopPropagation(); showMyMenu(e.currentTarget); };
+  document.querySelectorAll("#myFilter [data-filter]").forEach(b => {
+    b.onclick = () => { if(b.disabled || myFilter === b.dataset.filter) return; myFilter = b.dataset.filter; renderMy(); };
+  });
+  const rows = document.getElementById("myRows");
+  if(rows){
+    bindRows(rows, {
+      onEdit: w => showAddWordSheet(w, () => renderMy()),
+      onRemove: w => {
+        if(isCustom(w)){ if(confirmRemoveCustom(w)) renderMy(); }
+        else { toggleFav(w); toast("マイ単語帳から外しました"); renderMy(); }
+      }
+    });
+    const search = document.getElementById("mySearch");
+    const noHit = document.getElementById("myNoHit");
+    search.oninput = () => { myQuery = search.value; filterRows(rows, myQuery, noHit); };
+    search.addEventListener("keydown", e => { if(e.key === "Enter" && !e.isComposing) search.blur(); });
+    filterRows(rows, myQuery, noHit);
+    document.getElementById("btnMyFlash").onclick = () => startFlash(entries, `マイ単語帳（${labels[myFilter]}）`, { view:"my" }, "indiv");
+    document.getElementById("btnMyPron").onclick = () => startPron(entries, `マイ単語帳（${labels[myFilter]}）`, { view:"my" }, "indiv");
+  }
+}
+function confirmRemoveCustom(w){
+  if(!window.confirm(`「${w.en}」を削除します。よろしいですか？`)) return false;
+  removeCustomWord(w.id);
+  toast("削除しました");
+  return true;
+}
+function closePopMenu(){ const m = document.getElementById("popMenu"); if(m) m._close(); }
+function showMyMenu(anchor){
+  if(document.getElementById("popMenu")){ closePopMenu(); return; }
+  const menu = document.createElement("div");
+  menu.id = "popMenu";
+  menu.className = "pop-menu";
+  menu.setAttribute("role", "menu");
+  menu.innerHTML = `
+    <button type="button" role="menuitem" data-act="export">バックアップを書き出す</button>
+    <button type="button" role="menuitem" data-act="import">バックアップから復元する</button>`;
+  const r = anchor.getBoundingClientRect();
+  menu.style.top = (r.bottom + window.scrollY + 4) + "px";
+  menu.style.right = Math.max(8, document.documentElement.clientWidth - r.right) + "px";
+  document.body.appendChild(menu);
+  const onDoc = e => { if(!menu.contains(e.target)) close(); };
+  const close = () => { menu.remove(); document.removeEventListener("click", onDoc, true); };
+  menu._close = close;
+  setTimeout(() => document.addEventListener("click", onDoc, true), 0);
+  menu.querySelector('[data-act="export"]').onclick = () => { close(); showExportSheet(); };
+  menu.querySelector('[data-act="import"]').onclick = () => { close(); showImportSheet(); };
+}
+
+/* ===================== シート(下から出る画面) ===================== */
+function openSheet(html, onClose){
+  const ov = document.createElement("div");
+  ov.className = "sheet-overlay";
+  ov.innerHTML = `<div class="sheet" role="dialog" aria-modal="true">${html}</div>`;
+  document.body.appendChild(ov);
+  document.body.classList.add("sheet-open");
+  const close = () => {
+    if(!ov.isConnected) return;
+    ov.remove();
+    if(!document.querySelector(".sheet-overlay")) document.body.classList.remove("sheet-open");
+    if(onClose) onClose();
+  };
+  ov._close = close;
+  ov.addEventListener("click", e => { if(e.target === ov) close(); });
+  ov.querySelectorAll("[data-close]").forEach(b => b.onclick = close);
+  return { ov, close, $: sel => ov.querySelector(sel) };
+}
+const sheetHead = title => `<div class="sheet-head"><h1>${title}</h1><button class="icon-btn" data-close aria-label="閉じる">${ICON.close(16)}</button></div>`;
+
+/* ===================== 単語の追加・編集 =====================
+   日本語を入れると英語の候補が出て、選ぶだけで登録できるようにする。
+   候補は (1) 収録済みの単語・フレーズ (2) 自動翻訳(Chromeの端末内翻訳が使えればそれ、なければ MyMemory の無料翻訳API)。 */
+const translateCache = new Map();
+let chromeTranslator = null; // null=まだ調べていない / false=使えない
+// 応答が返ってこないことがあるので、待つのは決めた時間まで
+const withTimeout = (promise, ms) => Promise.race([promise, new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), ms))]);
+async function getChromeTranslator(){
+  if(chromeTranslator !== null) return chromeTranslator || null;
+  chromeTranslator = false;
+  try{
+    if("Translator" in self){
+      const a = await withTimeout(self.Translator.availability({ sourceLanguage:"ja", targetLanguage:"en" }), 1500);
+      if(a === "available") chromeTranslator = await withTimeout(self.Translator.create({ sourceLanguage:"ja", targetLanguage:"en" }), 3000);
+    }
+  }catch(e){ chromeTranslator = false; }
+  return chromeTranslator || null;
+}
+async function translateJaToEn(text){
+  if(translateCache.has(text)) return translateCache.get(text);
+  const out = [];
+  const t = await getChromeTranslator();
+  if(t){ try{ out.push(await withTimeout(t.translate(text), 3000)); }catch(e){} }
+  try{
+    const res = await fetch("https://api.mymemory.translated.net/get?langpair=ja%7Cen&q=" + encodeURIComponent(text), { signal:AbortSignal.timeout(8000) });
+    if(res.ok){
+      const data = await res.json();
+      if(data && Number(data.responseStatus) === 200){
+        out.push(data.responseData && data.responseData.translatedText);
+        (Array.isArray(data.matches) ? data.matches : [])
+          .filter(m => (Number(m.match) || 0) >= 0.7)
+          .sort((a, b) => (Number(b.match) || 0) - (Number(a.match) || 0))
+          .forEach(m => out.push(m.translation));
+      }
+    }
+  }catch(e){}
+  const seen = new Set();
+  const list = out
+    .map(x => String(x || "").replace(/\s+/g, " ").trim())
+    .filter(x => x && x.length <= 120 && !/[ぁ-んァ-ヶ一-龠]/.test(x) && !/MYMEMORY|QUERY LENGTH/i.test(x))
+    .filter(x => { const k = normEn(x); if(!k || seen.has(k)) return false; seen.add(k); return true; })
+    .slice(0, 4);
+  if(list.length) translateCache.set(text, list);
+  return list;
+}
+// 収録済みの単語で、日本語の意味が入れた言葉と重なるもの
+function builtinCandidates(ja){
+  const q = ja.trim();
+  if(!q) return [];
+  const core = x => x.replace(/[（(].*?[)）]/g, "").replace(/[。、？！?!・〜]/g, "");
+  return BUILTIN.filter(w => {
+    const j = core(w.ja);
+    return j.includes(q) || (j.length >= 2 && q.includes(j));
+  }).slice(0, 3);
+}
+function showAddWordSheet(existing, onSaved, prefill){
+  const isEdit = !!existing;
+  const src = existing || prefill || {};
+  const hasExtra = !!(src.pos || src.ex_en || src.ex_ja || src.note);
+  const { ov, close, $ } = openSheet(`
+    ${sheetHead(isEdit ? "単語を編集" : "単語を追加")}
+    <label class="field-label" for="inJa">日本語</label>
+    <input type="text" id="inJa" class="text-input big" placeholder="例: 機内持ち込み" maxlength="120">
+    <div class="suggest-box" id="suggestBox" hidden></div>
+    <label class="field-label" for="inEn">英語</label>
+    <div class="input-with-btn">
+      <input type="text" id="inEn" class="text-input en big" lang="en" placeholder="候補から選ぶか、直接入力" maxlength="120" autocapitalize="off" spellcheck="true">
+      <button type="button" class="speak-btn" id="btnPreview" aria-label="入れた英語を読み上げる">${ICON.speaker(18)}</button>
+    </div>
+    <div class="dup-note" id="dupNote" hidden></div>
+    <button type="button" class="more-toggle" id="btnMore" ${hasExtra ? "hidden" : ""}>＋ 例文・メモも入れる（任意）</button>
+    <div id="moreFields" ${hasExtra ? "" : "hidden"}>
+      <label class="field-label" for="inPos">ラベル（品詞・使う場面など）</label>
+      <input type="text" id="inPos" class="text-input" placeholder="例: お客さまの質問" maxlength="30">
+      <label class="field-label" for="inExEn">例文・英語</label>
+      <input type="text" id="inExEn" class="text-input en" lang="en" placeholder="例: Yes, it's cabin-size on most airlines." maxlength="200" autocapitalize="sentences">
+      <label class="field-label" for="inExJa">例文・日本語</label>
+      <input type="text" id="inExJa" class="text-input" placeholder="例: はい、多くの航空会社で機内持ち込みできます。" maxlength="200">
+      <label class="field-label" for="inNote">メモ</label>
+      <textarea id="inNote" class="text-input" rows="2" maxlength="200" placeholder="例: 台湾のお客さまによく聞かれる"></textarea>
+    </div>
+    <button class="btn btn-indiv" id="btnSubmit" disabled>${isEdit ? "保存する" : "追加する"}</button>
+    ${isEdit ? `<button class="btn ghost danger-text" id="btnDelete">この単語を削除する</button>` : ""}
+  `);
+  const enIn = $("#inEn"), jaIn = $("#inJa"), submit = $("#btnSubmit"), dupNote = $("#dupNote"), box = $("#suggestBox");
+  // 値は innerHTML に埋め込まず .value で入れる(入力をHTMLとして解釈させないため)
+  enIn.value = src.en || "";
+  jaIn.value = src.ja || "";
+  $("#inPos").value = src.pos || "";
+  $("#inExEn").value = src.ex_en || "";
+  $("#inExJa").value = src.ex_ja || "";
+  $("#inNote").value = src.note || "";
+  $("#btnMore").onclick = e => { e.currentTarget.hidden = true; $("#moreFields").hidden = false; $("#inExEn").focus(); };
+  const checkValid = () => { submit.disabled = !(enIn.value.trim() && jaIn.value.trim()); };
+  // 入れた英語が収録済みなら知らせる(自作せずに♡で入れれば、お手本音声・例文付きで使える)。
+  // 自分なりの訳で登録したい人もいるので、そのまま「追加する」も押せる
+  const checkDuplicate = () => {
+    const key = normEn(enIn.value);
+    const builtin = key ? BUILTIN.find(w => normEn(w.en) === key) : null;
+    const sameCustom = key ? state.customWords.find(w => w.id !== (existing && existing.id) && normEn(w.en) === key) : null;
+    if(builtin && !isEdit){
+      const c = catById(builtin.cat);
+      dupNote.innerHTML = `<p>収録済みの「${esc(c ? c.name : "")}」に入っています（${esc(builtin.ja)}）</p>
+        ${isFav(builtin) ? `<p class="dup-sub">すでにマイ単語帳に入っています</p>`
+          : `<button type="button" class="dup-note-btn" id="btnDupFav">${ICON.heart(15, false)}こちらをマイ単語帳に入れる</button><p class="dup-sub">お手本の音声と例文もそのまま使えます</p>`}`;
+      dupNote.hidden = false;
+      const favBtn = $("#btnDupFav");
+      if(favBtn) favBtn.onclick = () => { toggleFav(builtin); toast("マイ単語帳に入れました"); close(); if(onSaved) onSaved(); };
+    } else if(sameCustom){
+      dupNote.innerHTML = `<p>同じ英語がマイ単語帳にあります（${esc(sameCustom.ja)}）</p>`;
+      dupNote.hidden = false;
+    } else {
+      dupNote.hidden = true;
+      dupNote.innerHTML = "";
+    }
+  };
+  // 英語の候補
+  let reqToken = 0, timer = null;
+  const renderSuggest = (builtins, translations, loading, query) => {
+    if(!query){ box.hidden = true; box.innerHTML = ""; return; }
+    const cur = normEn(enIn.value);
+    const item = (en, ja, tag) => `<button type="button" class="suggest-item${normEn(en) === cur ? " picked" : ""}" data-en="${esc(en)}">
+        <span class="s-text"><span class="s-en" lang="en">${esc(en)}</span>${ja ? `<span class="s-ja">${esc(ja)}</span>` : ""}</span>${tag ? `<span class="s-tag">${tag}</span>` : ""}</button>`;
+    box.innerHTML = `
+      <div class="suggest-head"><span>英語の候補</span><small>タップで入ります</small></div>
+      ${builtins.map(w => item(w.en, w.ja, "収録済み")).join("")}
+      ${translations.filter(t => !builtins.some(w => normEn(w.en) === normEn(t))).map(t => item(t, "", "")).join("")}
+      ${loading ? `<div class="suggest-status">翻訳しています…</div>` : ""}
+      ${!loading && builtins.length === 0 && translations.length === 0 ? `<div class="suggest-status">候補が見つかりませんでした。英語を直接入れてください</div>` : ""}
+      ${translations.length ? `<p class="suggest-credit">自動翻訳の候補です。お客さまに使う前に、お手本を聞いて確かめてください</p>` : ""}`;
+    box.hidden = false;
+  };
+  const updateSuggest = () => {
+    const q = jaIn.value.trim();
+    clearTimeout(timer);
+    const token = ++reqToken;
+    const builtins = builtinCandidates(q);
+    if(!q || translateCache.has(q)){ renderSuggest(builtins, translateCache.get(q) || [], false, q); return; }
+    renderSuggest(builtins, [], true, q);
+    timer = setTimeout(async () => {
+      const list = await translateJaToEn(q);
+      if(token !== reqToken || !ov.isConnected) return;
+      renderSuggest(builtins, list, false, q);
+    }, 450);
+  };
+  box.addEventListener("click", e => {
+    const b = e.target.closest("[data-en]");
+    if(!b) return;
+    enIn.value = b.dataset.en;
+    box.querySelectorAll(".suggest-item").forEach(x => x.classList.toggle("picked", x === b));
+    checkValid();
+    checkDuplicate();
+    playEntry(BUILTIN.find(w => normEn(w.en) === normEn(b.dataset.en)) || { id:"preview", en:b.dataset.en }, "word");
+  });
+  // 日本語の変換中は翻訳しない(確定してから)
+  jaIn.addEventListener("input", e => { checkValid(); if(!e.isComposing) updateSuggest(); });
+  jaIn.addEventListener("compositionend", updateSuggest);
+  enIn.addEventListener("input", () => { checkValid(); checkDuplicate(); box.querySelectorAll(".suggest-item").forEach(x => x.classList.toggle("picked", normEn(x.dataset.en) === normEn(enIn.value))); });
+  checkValid();
+  checkDuplicate();
+  if(!isEdit && src.ja) updateSuggest();
+  $("#btnPreview").onclick = () => { if(enIn.value.trim()) speak(enIn.value.trim()); else enIn.focus(); };
+  // Return でキーボードを閉じる(日本語の変換確定の Enter では閉じない)
+  $(".sheet").querySelectorAll("input").forEach(inp => {
+    inp.setAttribute("enterkeyhint", "done");
+    inp.addEventListener("keydown", e => { if(e.key === "Enter" && !e.isComposing && e.keyCode !== 229){ e.preventDefault(); inp.blur(); } });
+  });
+  submit.onclick = () => {
+    const fields = {
+      en: enIn.value.trim().slice(0, 120),
+      ja: jaIn.value.trim().slice(0, 120),
+      pos: $("#inPos").value.trim().slice(0, 30),
+      ex_en: $("#inExEn").value.trim().slice(0, 200),
+      ex_ja: $("#inExJa").value.trim().slice(0, 200),
+      note: $("#inNote").value.trim().slice(0, 200)
+    };
+    if(!fields.en || !fields.ja) return;
+    if(isEdit){
+      // 同じオブジェクトを書き換える。フラッシュカードの出題順も同じ参照を持っているので、開いているカードにも反映される
+      Object.assign(existing, fields);
+    } else {
+      state.customWords.push({ id: "c" + (state.nextCustomId++), ...fields });
+    }
+    saveState();
+    toast(isEdit ? "保存しました" : "マイ単語帳に追加しました");
+    close();
+    if(onSaved) onSaved();
+  };
+  const del = $("#btnDelete");
+  if(del) del.onclick = () => {
+    if(!confirmRemoveCustom(existing)) return;
+    close();
+    if(flash){ flash.queue = flash.queue.filter(w => w.id !== existing.id); }
+    if(onSaved) onSaved(true);
+  };
+  if(!isEdit && !src.ja && !src.en) setTimeout(() => jaIn.focus(), 60);
+  else if(!isEdit && src.en && !src.ja) setTimeout(() => jaIn.focus(), 60);
+}
+
+/* ===================== フラッシュカード ===================== */
+function shuffle(a){ for(let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+// 長く見ていないものから出す(まだ見ていないものが先。同じ順位の中はシャッフル)
+function orderForFlash(entries){
+  return shuffle(entries.slice()).sort((a, b) => (state.seenAt[a.id] || 0) - (state.seenAt[b.id] || 0));
+}
+// 始める前に、出題のしかた(英語→日本語 か 日本語→英語)を選ぶ(選んだ内容は次回も使う)
+function startFlash(entries, title, back, tone){
+  if(entries.length === 0) return;
+  let front = state.flashFront === "ja" ? "ja" : "en";
+  const { close, $ } = openSheet(`
+    ${sheetHead("フラッシュカード")}
+    <p class="sub sheet-lead">${esc(title)}</p>
+    <div class="opt-label">出題のしかた</div>
+    <div class="segmented ${tone === "indiv" ? "" : "accent"}" id="flashFrontSeg">
+      <button data-front="en">英語 → 日本語</button>
+      <button data-front="ja">日本語 → 英語</button>
+    </div>
+    <button class="btn ${tone === "indiv" ? "btn-indiv" : ""}" id="btnFlashStart">${entries.length}枚をめくる</button>
+  `);
+  const update = () => document.querySelectorAll("#flashFrontSeg [data-front]").forEach(b => b.classList.toggle("active", b.dataset.front === front));
+  document.querySelectorAll("#flashFrontSeg [data-front]").forEach(b => b.onclick = () => { front = b.dataset.front; update(); });
+  $("#btnFlashStart").onclick = () => {
+    state.flashFront = front;
+    saveState();
+    close();
+    flash = { queue:orderForFlash(entries), idx:0, front, title, back, tone, slideFrom:null, notedIdx:null, spokenIdx:null, keepFlip:false };
+    go("flash");
+  };
+  update();
+}
+function finishFlash(){
+  const back = flash ? flash.back : { view:"home" };
+  flash = null;
+  if(back.catId) currentCatId = back.catId;
+  go(back.view || "home");
+}
+function renderFlashcard(){
+  if(!flash){ go("home"); return; }
+  stopSpeech();
+  if(flash.idx >= flash.queue.length){ renderFlashEnd(); return; }
+  const w = flash.queue[flash.idx];
+  const n = flash.queue.length;
+  const isFirst = flash.idx === 0;
+  const isLast = flash.idx === n - 1;
+  const custom = isCustom(w);
+  const toneVar = flash.tone === "indiv" ? "var(--indiv)" : "var(--accent)";
+  const slideFrom = flash.slideFrom;
+  flash.slideFrom = null;
+  if(flash.notedIdx !== flash.idx){
+    // 表示した時点で「見た」とみなす(フラッシュカードには正解・不正解が無いため)
+    flash.notedIdx = flash.idx;
+    state.seenCount++;
+    state.seenAt[w.id] = state.seenCount;
+    saveState();
+  }
+  const jaFront = flash.front === "ja";
+  const enHtml = `<div class="flash-en-row"><div class="flash-en${w.en.length > 28 ? " long" : ""}" lang="en">${esc(w.en)}</div><button class="speak-btn" id="flashSpeak" aria-label="発音を聞く">${ICON.speaker(18)}</button></div>`;
+  const jaHtml = `<div class="flash-ja">${esc(w.ja)}</div>`;
+  const source = custom ? "自作" : (catById(w.cat) || {}).name || "";
+  const keepFlip = flash.keepFlip && !!document.querySelector("#flashInner.flipped");
+  flash.keepFlip = false;
+  app.innerHTML = `
+    <div class="progress-row" style="--fc-tone:${toneVar};">
+      <button class="icon-btn" id="btnFlashPause" aria-label="一覧に戻る" style="margin-left:-8px;">${ICON.left(22)}</button>
+      <div class="progress-label">${flash.idx + 1} / ${n}</div>
+    </div>
+    <div class="flash-dots" aria-hidden="true" style="--fc-tone:${toneVar};"><div class="flash-dots-fill" style="width:${Math.round(100 * (flash.idx + 1) / n)}%;"></div></div>
+    <div class="flashcard-wrap" id="flashWrap">
+      <div class="flashcard-slide${slideFrom ? ` flash-in-${slideFrom}` : ""}" id="flashSlide">
+        <div class="flashcard-inner${keepFlip ? " flipped" : ""}" id="flashInner" role="button" tabindex="0" aria-label="カードをめくる">
+          <div class="flashcard-face flashcard-front">
+            <span class="flash-corner-left">${esc(source)}</span>
+            ${custom ? `<button class="flash-corner" data-flash-edit>編集</button>` : ""}
+            <div class="flashcard-body">
+              ${w.pos ? `<span class="word-pos">${esc(w.pos)}</span>` : ""}
+              ${jaFront ? jaHtml : enHtml}
+              <p class="flash-tap">${jaFront ? "英語で言ってみてから、タップして答えを見る" : "タップして意味を見る"}</p>
+            </div>
+          </div>
+          <div class="flashcard-face flashcard-back">
+            <span class="flash-corner-left">${esc(source)}</span>
+            ${custom ? `<button class="flash-corner" data-flash-edit>編集</button>` : ""}
+            <div class="flashcard-body">
+              ${jaFront ? enHtml.replace('id="flashSpeak"', 'id="flashSpeakBack"') : jaHtml}
+              ${w.ex_en || w.ex_ja ? `<div class="flash-ex">${w.ex_en ? `<div class="flash-ex-en" lang="en">${esc(w.ex_en)}<button class="speak-btn-sm" id="flashSpeakEx" aria-label="例文を聞く">${ICON.speaker(15)}</button></div>` : ""}${w.ex_ja ? `<div class="flash-ex-ja">${esc(w.ex_ja)}</div>` : ""}</div>` : ""}
+              ${w.note ? `<div class="flash-note">${esc(w.note)}</div>` : ""}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="flash-learn-row">
+      <button class="learn-chip${isLearned(w) ? " on" : ""}" id="flashLearn" aria-pressed="${isLearned(w)}"><span class="dot">${ICON.check(12)}</span>覚えた</button>
+    </div>
+    <p class="flash-hint">左右にスワイプでもめくれます</p>
+    <div class="flash-nav">
+      <button class="btn secondary" id="btnFlashPrev" ${isFirst ? "disabled" : ""}>${ICON.left(18)}前へ</button>
+      <button class="btn ${flash.tone === "indiv" ? "btn-indiv" : ""}" id="btnFlashNext">${isLast ? "おわり" : "次へ"}${ICON.right(18)}</button>
+    </div>
+  `;
+  const inner = document.getElementById("flashInner");
+  const slide = document.getElementById("flashSlide");
+  let swiped = false;
+  const flip = () => {
+    inner.classList.toggle("flipped");
+    // 日本語が表のときは、裏返して英語が見えたときに読み上げる
+    if(jaFront && inner.classList.contains("flipped") && state.autoSpeak && flash.spokenIdx !== flash.idx){
+      flash.spokenIdx = flash.idx;
+      playEntry(w, "word");
+    }
+  };
+  inner.onclick = () => { if(swiped){ swiped = false; return; } flip(); };
+  inner.addEventListener("keydown", e => { if(e.key === "Enter" && e.target === inner){ e.preventDefault(); flip(); } });
+  const goFlash = delta => {
+    if(delta < 0 && isFirst) return;
+    slide.style.transition = "transform .18s ease-in, opacity .18s ease-in";
+    slide.style.transform = `translateX(${delta > 0 ? -120 : 120}%) rotate(${delta > 0 ? -6 : 6}deg)`;
+    slide.style.opacity = "0";
+    setTimeout(() => {
+      flash.idx += delta;
+      flash.slideFrom = delta > 0 ? "right" : "left";
+      renderFlashcard();
+    }, 170);
+  };
+  // 紙の単語帳のように、左右にスワイプしてめくる(指に合わせてカードが動き、離した位置で次/前を決める)
+  const wrap = document.getElementById("flashWrap");
+  let sx = null, sy = null, dx = 0, horizontal = null;
+  wrap.addEventListener("touchstart", e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; dx = 0; horizontal = null; slide.style.transition = "none"; }, { passive:true });
+  wrap.addEventListener("touchmove", e => {
+    if(sx === null) return;
+    dx = e.touches[0].clientX - sx;
+    const dy = e.touches[0].clientY - sy;
+    if(horizontal === null && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) horizontal = Math.abs(dx) > Math.abs(dy);
+    if(!horizontal) return;
+    e.preventDefault();
+    const moved = dx > 0 && isFirst ? dx * 0.25 : dx; // 最初のカードで右に引っぱっても少ししか動かさない
+    slide.style.transform = `translateX(${moved}px) rotate(${moved / 40}deg)`;
+  }, { passive:false });
+  wrap.addEventListener("touchend", () => {
+    if(sx === null) return;
+    sx = null;
+    if(!horizontal){ slide.style.transition = ""; slide.style.transform = ""; return; }
+    swiped = true;
+    setTimeout(() => { swiped = false; }, 400);
+    if(dx < -60) goFlash(1);
+    else if(dx > 60 && !isFirst) goFlash(-1);
+    else { slide.style.transition = "transform .2s ease-out"; slide.style.transform = ""; }
+  });
+  const speakBtn = id => { const b = document.getElementById(id); if(b) b.onclick = e => { e.stopPropagation(); playEntry(w, "word"); }; };
+  speakBtn("flashSpeak");
+  speakBtn("flashSpeakBack");
+  const exBtn = document.getElementById("flashSpeakEx");
+  if(exBtn) exBtn.onclick = e => { e.stopPropagation(); playEntry(w, "ex"); };
+  document.querySelectorAll("[data-flash-edit]").forEach(b => b.onclick = e => {
+    e.stopPropagation();
+    showAddWordSheet(w, deleted => {
+      if(deleted){
+        if(flash.queue.length === 0){ finishFlash(); return; }
+        flash.idx = Math.min(flash.idx, flash.queue.length);
+        flash.notedIdx = null;
+      } else flash.keepFlip = true;
+      renderFlashcard();
+    });
+  });
+  const learnBtn = document.getElementById("flashLearn");
+  learnBtn.onclick = () => { const on = toggleLearned(w); learnBtn.classList.toggle("on", on); learnBtn.setAttribute("aria-pressed", on); };
+  document.getElementById("btnFlashPause").onclick = finishFlash;
+  document.getElementById("btnFlashPrev").onclick = () => goFlash(-1);
+  document.getElementById("btnFlashNext").onclick = () => goFlash(1);
+  flashControls = { next:() => goFlash(1), prev:() => goFlash(-1), flip };
+  // 英語が表のときは、新しいカードが出たら読み上げる(設定でオフにできる)。編集して描き直したときは鳴らし直さない
+  if(!jaFront && state.autoSpeak && flash.spokenIdx !== flash.idx){
+    flash.spokenIdx = flash.idx;
+    playEntry(w, "word");
+  }
+}
+// 最後までめくったあと: (覚えていないものだけ / すべて)もう一度 / 一覧に戻る
+function renderFlashEnd(){
+  const n = flash.queue.length;
+  const notLearned = flash.queue.filter(w => !isLearned(w));
+  const indiv = flash.tone === "indiv";
+  app.innerHTML = `
+    <div class="progress-row">
+      <button class="icon-btn" id="btnFlashPause" aria-label="一覧に戻る" style="margin-left:-8px;">${ICON.left(22)}</button>
+      <div class="progress-label">${n} / ${n}</div>
+    </div>
+    <div class="flash-dots" aria-hidden="true" style="--fc-tone:${indiv ? "var(--indiv)" : "var(--accent)"};"><div class="flash-dots-fill" style="width:100%;"></div></div>
+    <div class="flash-end flash-in-right">
+      <div class="flash-end-mark" style="background:${indiv ? "var(--indiv-light)" : "var(--accent-light)"}; color:${indiv ? "var(--indiv)" : "var(--accent)"};">${indiv ? ICON.heart(30, true) : ICON.check(30)}</div>
+      <h1>${n}枚 見終わりました</h1>
+      <p class="sub">お客さまの前で口から出るまで、くり返してみましょう</p>
+    </div>
+    ${notLearned.length > 0 && notLearned.length < n
+      ? `<button class="btn ${indiv ? "btn-indiv" : ""}" id="btnFlashNotLearned">覚えていない${notLearned.length}枚をもう一度</button>
+         <button class="btn secondary" id="btnFlashRestart">${n}枚すべてもう一度</button>`
+      : `<button class="btn ${indiv ? "btn-indiv" : ""}" id="btnFlashRestart">もう一度最初から</button>`}
+    <button class="btn ghost" id="btnFlashFinish">一覧に戻る</button>
+  `;
+  const restart = queue => {
+    flash.queue = queue;
+    flash.idx = 0; flash.slideFrom = "right"; flash.notedIdx = null; flash.spokenIdx = null;
+    renderFlashcard();
+  };
+  document.getElementById("btnFlashRestart").onclick = () => restart(orderForFlash(flash.queue));
+  const nl = document.getElementById("btnFlashNotLearned");
+  if(nl) nl.onclick = () => restart(notLearned);
+  document.getElementById("btnFlashPause").onclick = finishFlash;
+  document.getElementById("btnFlashFinish").onclick = finishFlash;
+}
+
+/* ===================== 発音チェック =====================
+   ブラウザの音声認識(iPhoneのSafari・パソコンのChrome)で話した英語を文字にし、お手本とどれだけ一致したかで点数を出す。
+   音の細かい正確さではなく「英語として聞き取ってもらえたか」を測る(接客で通じるかの目安)。80点以上を正解とする。 */
+const PRON_PASS = 80;
+const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+let pron = null;       // 発音チェックの進行
+let currentRec = null; // 聞き取り中の音声認識
+function stopListening(){
+  if(!currentRec) return;
+  const r = currentRec;
+  currentRec = null;
+  try{ r.abort(); }catch(e){}
+}
+const CONTRACTIONS = { "i'd":"i would", "it's":"it is", "here's":"here is", "what's":"what is", "that's":"that is", "there's":"there is",
+  "can't":"can not", "don't":"do not", "we'll":"we will", "i'm":"i am", "you're":"you are", "let's":"let us", "we're":"we are", "isn't":"is not", "we've":"we have" };
+// 比べるための単語の並び(小文字・記号なし・短縮形はのばす)
+function pronTokens(text){
+  const out = [];
+  String(text || "").toLowerCase().replace(/[’‘]/g, "'").replace(/-/g, " ").replace(/[^a-z0-9' ]+/g, " ").split(/\s+/).forEach(t => {
+    if(!t) return;
+    const full = CONTRACTIONS[t] || (t === "cannot" ? "can not" : t.replace(/'/g, ""));
+    out.push(...full.split(" ").filter(Boolean));
+  });
+  return out;
+}
+function lev(a, b){
+  if(a === b) return 0;
+  let prev = Array.from({ length:b.length + 1 }, (_, j) => j);
+  for(let i = 1; i <= a.length; i++){
+    const cur = [i];
+    for(let j = 1; j <= b.length; j++){
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    }
+    prev = cur;
+  }
+  return prev[b.length];
+}
+const strSim = (a, b) => (a.length || b.length) ? 1 - lev(a, b) / Math.max(a.length, b.length) : 1;
+// 単語が「言えた」とみなすか(複数形などの小さな違いは許す)
+const sameWord = (a, b) => a === b || (a.length > 3 && strSim(a, b) >= 0.75);
+// お手本の各単語が、聞き取れた言葉の中に順番どおり出てきたか
+function matchedWords(T, H){
+  const dp = Array.from({ length:T.length + 1 }, () => new Array(H.length + 1).fill(0));
+  for(let i = 1; i <= T.length; i++) for(let j = 1; j <= H.length; j++){
+    dp[i][j] = sameWord(T[i - 1], H[j - 1]) ? dp[i - 1][j - 1] + 1 : Math.max(dp[i - 1][j], dp[i][j - 1]);
+  }
+  const hits = new Array(T.length).fill(false);
+  let i = T.length, j = H.length;
+  while(i > 0 && j > 0){
+    if(sameWord(T[i - 1], H[j - 1]) && dp[i][j] === dp[i - 1][j - 1] + 1){ hits[i - 1] = true; i--; j--; }
+    else if(dp[i - 1][j] >= dp[i][j - 1]) i--;
+    else j--;
+  }
+  return hits;
+}
+// 0〜100点。単語ごとの一致(言い落とし・言い間違い)と、文字の近さ(つづりの近い聞き違い)を合わせる
+function scorePron(target, heard){
+  const T = pronTokens(target), H = pronTokens(heard);
+  if(!T.length || !H.length) return { score:0, hits:T.map(() => false), heard };
+  let sim, hits;
+  if(T.length === 1){
+    // 1語のときは、前後に余計な言葉(the など)が付いても下げない。2語に分かれて聞こえた場合(highchair など)も見る
+    const cands = [H.join(" "), H.join(""), ...H, ...H.slice(1).map((h, k) => H[k] + h)];
+    sim = Math.max(...cands.map(c => strSim(T[0], c)));
+    hits = [sim >= PRON_PASS / 100];
+  } else {
+    hits = matchedWords(T, H);
+    const extra = Math.max(0, H.length - T.length);
+    const wordSim = hits.filter(Boolean).length / (T.length + extra * 0.5);
+    sim = (strSim(T.join(" "), H.join(" ")) + wordSim) / 2;
+    // 「high chair」が「highchair」と聞き取られたような、区切り方だけの違いは言えたとみなす
+    const joined = strSim(T.join(""), H.join(""));
+    if(joined >= 0.95 && joined > sim){ sim = joined; hits = T.map(() => true); }
+  }
+  return { score:Math.round(Math.max(0, Math.min(1, sim)) * 100), hits, heard };
+}
+function bestPronScore(target, heardList){
+  return heardList.map(h => scorePron(target, h)).reduce((a, b) => (b.score > a.score ? b : a));
+}
+function recordPron(w, score){
+  const s = state.pron[w.id] || { n:0, ok:0, best:0 };
+  s.n++;
+  if(score >= PRON_PASS) s.ok++;
+  s.best = Math.max(s.best, score);
+  state.pron[w.id] = s;
+  saveState();
+}
+// これまでの発音チェックの正答率(80点以上だった回数の割合)。まだ1回もしていなければ null
+function pronRate(items){
+  let n = 0, ok = 0;
+  items.forEach(w => { const s = state.pron[w.id]; if(s){ n += s.n; ok += s.ok; } });
+  return n ? Math.round(100 * ok / n) : null;
+}
+function startPron(entries, title, back, tone){
+  if(entries.length === 0) return;
+  if(!SpeechRec){
+    openSheet(`${sheetHead("発音チェック")}
+      <p style="margin:0 0 8px;">このブラウザは音声の聞き取りに対応していません。</p>
+      <p class="sub" style="font-size:14px;">iPhone は <b>Safari</b>、パソコンや Android は <b>Google Chrome</b> で開くと使えます。</p>
+      <button class="btn" data-close>閉じる</button>`);
+    return;
+  }
+  // 点数の低いもの・まだ試していないものから出す
+  const best = w => (state.pron[w.id] ? state.pron[w.id].best : -1);
+  const queue = shuffle(entries.slice()).sort((a, b) => best(a) - best(b));
+  pron = { queue, idx:0, title, back, tone, scores:{}, results:{} };
+  go("pron");
+}
+function finishPron(){
+  const back = pron ? pron.back : { view:"home" };
+  pron = null;
+  if(back.catId) currentCatId = back.catId;
+  go(back.view || "home");
+}
+function renderPron(){
+  if(!pron){ go("home"); return; }
+  if(pron.idx >= pron.queue.length){ renderPronEnd(); return; }
+  const w = pron.queue[pron.idx];
+  const n = pron.queue.length;
+  const isLast = pron.idx === n - 1;
+  const indiv = pron.tone === "indiv";
+  const nextLabel = () => isLast ? "おわり" : (pron.scores[w.id] != null ? "次へ" : "スキップ");
+  app.innerHTML = `
+    <div class="progress-row">
+      <button class="icon-btn" id="btnPronPause" aria-label="一覧に戻る" style="margin-left:-8px;">${ICON.left(22)}</button>
+      <div class="progress-label">${pron.idx + 1} / ${n}</div>
+    </div>
+    <div class="flash-dots" aria-hidden="true" style="--fc-tone:var(--blue);"><div class="flash-dots-fill" style="width:${Math.round(100 * (pron.idx + 1) / n)}%;"></div></div>
+    <div class="pron-card">
+      ${w.pos ? `<span class="word-pos">${esc(w.pos)}</span>` : ""}
+      <div class="pron-en${w.en.length > 24 ? " long" : ""}" lang="en">${esc(w.en)}</div>
+      <div class="pron-ja">${esc(w.ja)}</div>
+      <div class="pron-listen">
+        <button class="btn secondary" id="btnModel">${ICON.speaker(16)}お手本を聞く</button>
+        <button class="btn ghost" id="btnModelSlow">ゆっくり</button>
+      </div>
+    </div>
+    <div class="pron-mic-area">
+      <button class="mic-btn" id="micBtn" aria-label="マイクで話す">${ICON.mic(36)}</button>
+      <p class="mic-label" id="micLabel">マイクを押して、英語で言ってみよう</p>
+      <p class="mic-interim" id="micInterim" lang="en"></p>
+    </div>
+    <div id="pronResult"></div>
+    <div class="flash-nav">
+      <button class="btn secondary" id="btnPronPrev" ${pron.idx === 0 ? "disabled" : ""}>${ICON.left(18)}前へ</button>
+      <button class="btn ${indiv ? "btn-indiv" : ""}" id="btnPronNext">${nextLabel()}${ICON.right(18)}</button>
+    </div>
+    <p class="pron-foot">話した声は、ブラウザの音声認識（Apple・Google）で文字にして採点します</p>
+  `;
+  const micBtn = document.getElementById("micBtn");
+  const label = document.getElementById("micLabel");
+  const interimEl = document.getElementById("micInterim");
+  const resultEl = document.getElementById("pronResult");
+  const nextBtn = document.getElementById("btnPronNext");
+  const showResult = r => {
+    const v = r.score >= 90 ? ["great", "ばっちり！"] : r.score >= PRON_PASS ? ["good", "よく言えています"]
+      : r.score >= 50 ? ["close", "おしい！もう一度"] : ["retry", "お手本を聞いて、もう一度"];
+    // 単語ごとに、言えたか(ふつうの色)・言えていないか(赤の波線)を出す
+    let k = 0;
+    const words = w.en.split(/\s+/).map(word => {
+      const t = pronTokens(word).length;
+      const ok = t === 0 || r.hits.slice(k, k + t).every(Boolean);
+      k += t;
+      return `<span class="${ok ? "hit" : "miss"}">${esc(word)}</span>`;
+    }).join("");
+    resultEl.innerHTML = `<div class="pron-result ${v[0]}">
+      <div class="pron-score"><b>${r.score}</b><span>点</span></div>
+      <div class="pron-verdict">${v[1]}</div>
+      <div class="pron-words" lang="en">${words}</div>
+      <div class="pron-heard">聞き取れた英語：<span lang="en">“${esc(r.heard)}”</span></div>
+    </div>`;
+  };
+  if(pron.results[w.id]) showResult(pron.results[w.id]);
+  micBtn.onclick = () => {
+    if(currentRec){ try{ currentRec.stop(); }catch(e){} return; } // 2回目のタップで話し終わり
+    stopSpeech(); // お手本の音を拾わないように止める
+    const rec = new SpeechRec();
+    rec.lang = "en-US";
+    rec.interimResults = true;
+    rec.maxAlternatives = 5;
+    rec.continuous = false;
+    let finals = [], alts = [], interim = "", err = null, timer = null;
+    rec.onstart = () => {
+      micBtn.classList.add("listening");
+      label.textContent = "聞いています… 言い終わったら少し待つか、もう一度押してください";
+      interimEl.textContent = "";
+    };
+    rec.onresult = e => {
+      finals = []; alts = []; interim = "";
+      for(let i = 0; i < e.results.length; i++){
+        const r = e.results[i];
+        if(r.isFinal){
+          finals.push(r[0].transcript);
+          for(let j = 1; j < r.length; j++) alts.push(r[j].transcript);
+        } else interim += r[0].transcript;
+      }
+      interimEl.textContent = (finals.join(" ") + " " + interim).trim();
+    };
+    rec.onerror = e => { err = e.error; };
+    rec.onend = () => {
+      clearTimeout(timer);
+      if(currentRec !== rec) return; // 画面を移ったときの中断
+      currentRec = null;
+      micBtn.classList.remove("listening");
+      const heardList = [finals.join(" "), ...alts, interim].map(x => x.trim()).filter(Boolean);
+      if(heardList.length === 0){
+        label.textContent = err === "not-allowed" || err === "service-not-allowed" ? "マイクが使えません。ブラウザの設定でマイクを許可してください"
+          : err === "network" ? "通信できませんでした。インターネットにつながっているか確認してください"
+          : err === "audio-capture" ? "マイクが見つかりませんでした"
+          : "聞き取れませんでした。もう一度マイクを押して、はっきり話してください";
+        return;
+      }
+      const r = bestPronScore(w.en, heardList);
+      recordPron(w, r.score);
+      pron.scores[w.id] = Math.max(pron.scores[w.id] ?? 0, r.score);
+      pron.results[w.id] = r;
+      showResult(r);
+      interimEl.textContent = "";
+      label.textContent = r.score >= PRON_PASS ? "もう一度言うときはマイクを押してください" : "マイクを押して、もう一度どうぞ";
+      nextBtn.innerHTML = `${nextLabel()}${ICON.right(18)}`;
+    };
+    currentRec = rec;
+    timer = setTimeout(() => { if(currentRec === rec){ try{ rec.stop(); }catch(e){} } }, 8000);
+    try{ rec.start(); }
+    catch(e){ currentRec = null; label.textContent = "マイクを使い始められませんでした。もう一度押してください"; }
+  };
+  document.getElementById("btnModel").onclick = () => { stopListening(); micBtn.classList.remove("listening"); playEntry(w, "word"); };
+  document.getElementById("btnModelSlow").onclick = () => { stopListening(); micBtn.classList.remove("listening"); playEntry(w, "word", true); };
+  document.getElementById("btnPronPause").onclick = finishPron;
+  document.getElementById("btnPronPrev").onclick = () => { if(pron.idx > 0){ pron.idx--; render(); } };
+  nextBtn.onclick = () => { pron.idx++; render(); };
+  // 新しい単語が出たら、まずお手本を流す
+  if(state.autoSpeak && pron.spokenIdx !== pron.idx){ pron.spokenIdx = pron.idx; playEntry(w, "word"); }
+}
+function renderPronEnd(){
+  const tried = pron.queue.filter(w => pron.scores[w.id] != null);
+  const passed = tried.filter(w => pron.scores[w.id] >= PRON_PASS);
+  const notYet = pron.queue.filter(w => !(pron.scores[w.id] >= PRON_PASS));
+  const avg = tried.length ? Math.round(tried.reduce((t, w) => t + pron.scores[w.id], 0) / tried.length) : 0;
+  app.innerHTML = `
+    <div class="progress-row">
+      <button class="icon-btn" id="btnPronPause" aria-label="一覧に戻る" style="margin-left:-8px;">${ICON.left(22)}</button>
+      <div class="progress-label">${pron.queue.length} / ${pron.queue.length}</div>
+    </div>
+    <div class="flash-dots" aria-hidden="true" style="--fc-tone:var(--blue);"><div class="flash-dots-fill" style="width:100%;"></div></div>
+    <div class="flash-end flash-in-right">
+      <div class="flash-end-mark" style="background:var(--blue-light); color:var(--blue);">${ICON.mic(30)}</div>
+      ${tried.length
+        ? `<h1>正答率 ${Math.round(100 * passed.length / tried.length)}%</h1>
+           <p class="sub">${tried.length}語中 ${passed.length}語が${PRON_PASS}点以上（平均 ${avg}点）</p>`
+        : `<h1>おつかれさまでした</h1><p class="sub">マイクを押して話すと、点数が出ます</p>`}
+    </div>
+    ${notYet.length > 0 && notYet.length < pron.queue.length
+      ? `<button class="btn btn-mic" id="btnPronRetry">${PRON_PASS}点未満の${notYet.length}語をもう一度</button>
+         <button class="btn secondary" id="btnPronAll">すべてもう一度</button>`
+      : `<button class="btn btn-mic" id="btnPronAll">もう一度最初から</button>`}
+    <button class="btn ghost" id="btnPronFinish">一覧に戻る</button>
+  `;
+  const restart = queue => { pron.queue = queue; pron.idx = 0; pron.scores = {}; pron.results = {}; pron.spokenIdx = null; render(); };
+  document.getElementById("btnPronAll").onclick = () => restart(shuffle(pron.queue.slice()));
+  const retry = document.getElementById("btnPronRetry");
+  if(retry) retry.onclick = () => restart(notYet);
+  document.getElementById("btnPronPause").onclick = finishPron;
+  document.getElementById("btnPronFinish").onclick = finishPron;
+}
+
+/* ===================== 設定 ===================== */
+function showSettingsSheet(){
+  const { $ } = openSheet(`
+    ${sheetHead("設定")}
+    <div class="settings-group">
+      <div class="opt-label">読み上げの速さ</div>
+      <div class="segmented accent" id="rateSeg">
+        <button data-rate="slow">ゆっくり</button>
+        <button data-rate="normal">ふつう</button>
+      </div>
+      <div class="opt-row">
+        <span><b>フラッシュカードで自動で読み上げる</b><small>英語が見えたときに発音を流します</small></span>
+        <label class="switch"><input type="checkbox" id="autoSpeak" ${state.autoSpeak ? "checked" : ""} aria-label="自動で読み上げる"><span class="switch-slider"></span></label>
+      </div>
+      <button class="btn secondary" id="btnTestSpeak" style="display:flex; align-items:center; justify-content:center; gap:6px;">${ICON.speaker(18)}お手本の音声を試す</button>
+      <p class="sub" style="font-size:12px; margin-top:8px;">${Object.keys(AUDIO).length ? "収録済みの単語・例文のお手本は、音声合成AI（Kokoro）で作った音声です。自分で追加した単語は、端末の読み上げ機能で再生します。" : "お手本は端末の読み上げ機能で再生しています。"}</p>
+    </div>
+    <div class="settings-group">
+      <div class="opt-label">データ</div>
+      <p class="sub" style="font-size:13px;">マイ単語帳と「覚えた」は、このブラウザの中にだけ保存されます。機種変更やブラウザのデータ削除の前に、バックアップを書き出しておいてください。</p>
+      <button class="btn ghost" id="btnExport">バックアップを書き出す</button>
+      <button class="btn ghost" id="btnImport">バックアップから復元する</button>
+      <button class="btn ghost" id="btnResetLearned">「覚えた」をすべて外す</button>
+      <button class="btn ghost" id="btnResetPron">発音チェックの記録を消す</button>
+    </div>
+  `);
+  const updateRate = () => document.querySelectorAll("#rateSeg [data-rate]").forEach(b => b.classList.toggle("active", b.dataset.rate === state.speechRate));
+  document.querySelectorAll("#rateSeg [data-rate]").forEach(b => b.onclick = () => { state.speechRate = b.dataset.rate; saveState(); updateRate(); playEntry(BUILTIN.find(w => w.cat === "phrase") || BUILTIN[0], "word"); });
+  updateRate();
+  $("#autoSpeak").onchange = e => { state.autoSpeak = e.target.checked; saveState(); };
+  $("#btnTestSpeak").onclick = () => playEntry(BUILTIN.find(w => w.cat === "phrase") || BUILTIN[0], "word");
+  $("#btnExport").onclick = showExportSheet;
+  $("#btnImport").onclick = showImportSheet;
+  $("#btnResetLearned").onclick = () => {
+    if(state.learned.length === 0){ toast("「覚えた」はまだありません"); return; }
+    if(!window.confirm(`「覚えた」のチェック（${state.learned.length}件）をすべて外します。マイ単語帳の単語は消えません。`)) return;
+    state.learned = [];
+    saveState();
+    toast("「覚えた」を外しました");
+    render();
+  };
+  $("#btnResetPron").onclick = () => {
+    const n = Object.keys(state.pron).length;
+    if(n === 0){ toast("発音チェックの記録はまだありません"); return; }
+    if(!window.confirm(`発音チェックの記録（${n}語ぶん）を消します。よろしいですか？`)) return;
+    state.pron = {};
+    saveState();
+    toast("発音チェックの記録を消しました");
+    render();
+  };
+}
+
+/* ===================== バックアップ =====================
+   データはこのブラウザにしか無いので、テキスト(JSON)で書き出して、メモやLINEで自分に送っておいてもらう。 */
+function backupPayload(){
+  return {
+    app: "babyShopEnglish", version: 1, exportedAt: new Date().toISOString(),
+    customWords: state.customWords, favorites: state.favorites, learned: state.learned, pron: state.pron
+  };
+}
+function showExportSheet(){
+  const json = JSON.stringify(backupPayload());
+  const { $ } = openSheet(`
+    ${sheetHead("バックアップを書き出す")}
+    <p class="sub" style="font-size:14px; margin-bottom:10px;">下のテキストをコピーして、メモアプリや自分宛てのメッセージに保存してください。自作 ${state.customWords.length}語・お気に入り ${state.favorites.length}件・覚えた ${state.learned.length}件 が入っています。</p>
+    <textarea class="text-input" id="exportText" rows="5" readonly style="font-size:12px; font-family:ui-monospace, Menlo, monospace;"></textarea>
+    <button class="btn btn-indiv" id="btnCopy">コピーする</button>
+    <button class="btn ghost" id="btnDownload">ファイルで保存する</button>
+  `);
+  const ta = $("#exportText");
+  ta.value = json;
+  $("#btnCopy").onclick = async () => {
+    try{ await navigator.clipboard.writeText(json); toast("コピーしました"); }
+    catch(e){ ta.focus(); ta.select(); toast("テキストを選択しました。コピーしてください"); }
+  };
+  $("#btnDownload").onclick = () => {
+    const d = new Date();
+    const stamp = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([json], { type:"application/json" }));
+    a.download = `ベビー接客えいご_バックアップ_${stamp}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+}
+function showImportSheet(){
+  const { close, $ } = openSheet(`
+    ${sheetHead("バックアップから復元")}
+    <p class="sub" style="font-size:14px; margin-bottom:10px;">書き出したテキストを貼り付けるか、保存したファイルを選んでください。今のマイ単語帳と「覚えた」は上書きされます。</p>
+    <textarea class="text-input" id="importText" rows="5" placeholder="バックアップのテキストを貼り付け" style="font-size:12px; font-family:ui-monospace, Menlo, monospace;"></textarea>
+    <label class="btn ghost" style="display:block; cursor:pointer;">ファイルを選ぶ<input type="file" id="importFile" accept=".json,.txt,application/json,text/plain" hidden></label>
+    <button class="btn btn-indiv" id="btnDoImport">復元する</button>
+  `);
+  $("#importFile").onchange = async e => {
+    const f = e.target.files && e.target.files[0];
+    if(!f) return;
+    if(f.size > 2 * 1024 * 1024){ toast("ファイルが大きすぎます"); return; }
+    $("#importText").value = await f.text();
+  };
+  $("#btnDoImport").onclick = () => {
+    const raw = $("#importText").value.trim();
+    if(!raw){ toast("テキストを貼り付けてください"); return; }
+    let p;
+    try{ p = JSON.parse(raw); }catch(e){ p = null; }
+    if(!p || typeof p !== "object" || !Array.isArray(p.customWords) || !Array.isArray(p.favorites)){
+      window.alert("読み込めませんでした。テキストが途中で切れていないか確認してください。");
+      return;
+    }
+    // 手で書き換えたり壊れたりしたバックアップでも安全に取り込めるよう、型を確かめてから入れる
+    const words = sanitizeCustomWords(p.customWords);
+    const favs = [...new Set(p.favorites.filter(id => typeof id === "string" && BUILTIN_MAP.has(id)))];
+    const knownIds = new Set([...BUILTIN_MAP.keys(), ...words.map(w => w.id)]);
+    const learned = Array.isArray(p.learned) ? [...new Set(p.learned.filter(id => typeof id === "string" && knownIds.has(id)))] : [];
+    const dropped = p.customWords.length - words.length;
+    if(!window.confirm(`自作 ${words.length}語・お気に入り ${favs.length}件 を復元します。今のマイ単語帳は上書きされます。よろしいですか？${dropped > 0 ? `\n（形式が正しくない ${dropped}語は読み込めませんでした）` : ""}`)) return;
+    state.customWords = words;
+    state.favorites = favs;
+    state.learned = learned;
+    if(p.pron && typeof p.pron === "object" && !Array.isArray(p.pron)){
+      state.pron = Object.fromEntries(Object.entries(p.pron).filter(([id, v]) => knownIds.has(id) && v && [v.n, v.ok, v.best].every(x => Number.isFinite(x))));
+    }
+    // 採番はバックアップの値を信用せず、実際のidから計算し直してidの重なりを防ぐ
+    state.nextCustomId = nextIdAfter(words);
+    saveState();
+    close();
+    document.querySelectorAll(".sheet-overlay").forEach(o => o._close());
+    toast("復元しました");
+    render();
+  };
+}
+
+/* ===================== キーボード(パソコンで使うとき) ===================== */
+document.addEventListener("keydown", e => {
+  if(e.key === "Escape"){
+    const overlays = document.querySelectorAll(".sheet-overlay");
+    if(overlays.length){ overlays[overlays.length - 1]._close(); return; }
+    closePopMenu();
+    return;
+  }
+  if(!flashControls || document.querySelector(".sheet-overlay")) return;
+  if(e.target.closest && e.target.closest("input, textarea")) return;
+  if(e.key === "ArrowRight"){ e.preventDefault(); flashControls.next(); }
+  else if(e.key === "ArrowLeft"){ e.preventDefault(); flashControls.prev(); }
+  else if(e.key === " "){ e.preventDefault(); flashControls.flip(); }
+});
+
+render();
+</script>
+</body>
+</html>
