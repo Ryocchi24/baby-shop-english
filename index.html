@@ -1447,19 +1447,34 @@ function pronRate(items){
   items.forEach(w => { const s = state.pron[w.id]; if(s){ n += s.n; ok += s.ok; } });
   return n ? Math.round(100 * ok / n) : null;
 }
-// LINE・Instagram などのアプリの中で開いたブラウザでは、マイクや音声の聞き取りが使えないことが多い
-const IN_APP_BROWSER = /\bLine\/|Instagram|FBAN|FBAV|MicroMessenger/i.test(navigator.userAgent);
+// iPhone で音声の聞き取り(マイク)が使えるのは Safari だけ。Chrome・Firefox や、LINE などのアプリの中の画面では
+// 許可の確認も出ずに止まってしまうので、始める前に Safari で開き直すよう案内する
+const UA = navigator.userAgent;
+const IS_IOS = /iPhone|iPad|iPod/.test(UA) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const IN_APP_BROWSER = /\bLine\/|Instagram|FBAN|FBAV|MicroMessenger/i.test(UA);
+const IOS_NOT_SAFARI = IS_IOS && (IN_APP_BROWSER || /CriOS|FxiOS|EdgiOS|OPiOS|YaBrowser|DuckDuckGo|GSA\//.test(UA));
 function startPron(entries, title, back, tone, force){
   if(entries.length === 0) return;
-  if(!SpeechRec || (IN_APP_BROWSER && !force)){
+  if(!SpeechRec || (IOS_NOT_SAFARI && !force) || (IN_APP_BROWSER && !force)){
+    const browser = /CriOS/.test(UA) ? "Chrome" : /FxiOS/.test(UA) ? "Firefox" : /EdgiOS/.test(UA) ? "Edge" : IN_APP_BROWSER ? "アプリの中の画面" : "このブラウザ";
     const { close, $ } = openSheet(`${sheetHead("発音チェック")}
-      ${IN_APP_BROWSER
+      ${IOS_NOT_SAFARI
+        ? `<p style="margin:0 0 8px;">iPhone の${esc(browser)}では、iPhone の仕様でマイクの聞き取りが使えません。<b>Safari で開いてください。</b></p>
+           <p class="sub" style="font-size:14px; margin-bottom:4px;">下のボタンでこのページのアドレスをコピーして、Safari のアドレス欄に貼り付けて開いてください。マイク以外の機能は、このままでも使えます。</p>
+           <button class="btn btn-indiv" id="btnCopyUrl">アドレスをコピーする</button>`
+        : IN_APP_BROWSER
         ? `<p style="margin:0 0 8px;">LINE などのアプリの中で開いた画面では、マイクがうまく使えないことがあります。</p>
-           <p class="sub" style="font-size:14px;">画面の右上か右下のメニューから「<b>ブラウザで開く</b>」（iPhone は Safari）を選んで開き直してください。</p>`
+           <p class="sub" style="font-size:14px;">画面の右上か右下のメニューから「<b>ブラウザで開く</b>」を選んで開き直してください。</p>`
         : `<p style="margin:0 0 8px;">このブラウザは音声の聞き取りに対応していません。</p>
            <p class="sub" style="font-size:14px;">iPhone は <b>Safari</b>、パソコンや Android は <b>Google Chrome</b> で開くと使えます。</p>`}
       ${SpeechRec ? `<button class="btn secondary" id="btnPronAnyway">このまま試す</button>` : ""}
-      <button class="btn" data-close>閉じる</button>`);
+      <button class="btn ghost" data-close>閉じる</button>`);
+    const copy = $("#btnCopyUrl");
+    if(copy) copy.onclick = async () => {
+      const url = location.href.split("#")[0];
+      try{ await navigator.clipboard.writeText(url); toast("コピーしました。Safari に貼り付けてください"); }
+      catch(e){ window.prompt("このアドレスをコピーして、Safari で開いてください", url); }
+    };
     const anyway = $("#btnPronAnyway");
     if(anyway) anyway.onclick = () => { close(); startPron(entries, title, back, tone, true); };
     return;
@@ -1583,7 +1598,18 @@ function renderPron(){
     rec.continuous = true; // ■を押すか、黙るまで聞き続ける(途中で勝手に切れないように)
     let finals = [], alts = [], interim = "", err = null, maxTimer = null, silenceTimer = null;
     const stopRec = () => { if(currentRec === rec){ try{ rec.stop(); }catch(e){} } };
+    // 「準備中」のまま進まないとき(許可の確認待ち・使えないブラウザ)の案内と、打ち切り
+    const hintTimer = setTimeout(() => {
+      if(currentRec === rec && micBtn.dataset.state === "starting") label.innerHTML = `<small>「マイク」や「音声認識」の許可の確認が出ていたら、「許可」を押してください</small>`;
+    }, 3000);
+    const giveUpTimer = setTimeout(() => {
+      if(currentRec !== rec || micBtn.dataset.state !== "starting") return;
+      stopListening();
+      setMic("idle", `マイクを始められませんでした<small>${IS_IOS ? "iPhone は Safari で開いてください。" : ""}ブラウザの設定で、このページのマイクが「許可」になっているか確認してください</small>`);
+    }, 10000);
     rec.onstart = () => {
+      clearTimeout(hintTimer);
+      clearTimeout(giveUpTimer);
       setMic("recording");
       interimEl.textContent = "";
       maxTimer = setTimeout(stopRec, MAX_MS);
@@ -1604,6 +1630,8 @@ function renderPron(){
     };
     rec.onerror = e => { err = e.error; };
     rec.onend = () => {
+      clearTimeout(hintTimer);
+      clearTimeout(giveUpTimer);
       clearTimeout(maxTimer);
       clearTimeout(silenceTimer);
       if(currentRec !== rec) return; // 画面を移ったときの中断
