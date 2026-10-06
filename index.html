@@ -337,9 +337,21 @@
   .mic-btn{ width:84px; height:84px; border-radius:50%; border:none; border-bottom:5px solid var(--blue-shade); background:var(--blue); color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; }
   .mic-btn:active{ transform:translateY(3px); border-bottom-width:2px; }
   .mic-btn.listening{ background:var(--danger); border-bottom-color:rgba(0,0,0,.3); animation:micPulse 1.2s ease-in-out infinite; }
+  .mic-btn.starting{ opacity:.55; }
+  .mic-status{ min-height:34px; margin-top:12px; display:flex; justify-content:center; }
+  .rec-pill{ display:inline-flex; align-items:center; gap:7px; padding:5px 14px; border-radius:999px; background:var(--danger); color:#fff; font-size:15px; font-weight:800; }
+  .rec-pill b{ font-variant-numeric:tabular-nums; }
+  .rec-pill.wait{ background:var(--track); color:var(--sub); }
+  .rec-dot{ width:10px; height:10px; border-radius:50%; background:#fff; animation:recBlink 1s steps(2, start) infinite; }
+  .rec-wave{ display:inline-flex; align-items:center; gap:2px; height:16px; margin-left:2px; }
+  .rec-wave i{ width:3px; height:6px; border-radius:2px; background:#fff; animation:recWave .9s ease-in-out infinite; }
+  .rec-wave i:nth-child(2){ animation-delay:.15s; } .rec-wave i:nth-child(3){ animation-delay:.3s; } .rec-wave i:nth-child(4){ animation-delay:.45s; } .rec-wave i:nth-child(5){ animation-delay:.6s; }
+  @keyframes recBlink{ to{ visibility:hidden; } }
+  @keyframes recWave{ 0%,100%{ height:5px; } 50%{ height:16px; } }
+  .mic-now{ display:block; font-size:17px; color:var(--danger); }
   @keyframes micPulse{ 0%,100%{ box-shadow:0 0 0 0 rgba(201,53,47,.45); } 50%{ box-shadow:0 0 0 16px rgba(201,53,47,0); } }
-  .mic-label{ margin:10px 0 0; font-size:14px; font-weight:800; color:var(--sub); text-align:center; }
-  .mic-label small{ font-size:12px; font-weight:700; }
+  .mic-label{ margin:6px 0 0; font-size:14px; font-weight:800; color:var(--sub); text-align:center; min-height:42px; }
+  .mic-label small{ display:block; font-size:12px; font-weight:700; }
   .mic-interim{ margin:4px 0 0; min-height:22px; font-family:var(--font-en); font-size:15px; text-align:center; overflow-wrap:anywhere; }
   .pron-result{ border-radius:20px; padding:14px 16px; margin-bottom:12px; text-align:center; animation:fadeIn .2s ease-out; }
   .pron-result.great, .pron-result.good{ background:var(--accent-light); color:var(--accent); }
@@ -353,7 +365,7 @@
   .pron-heard{ font-size:13px; color:var(--sub); font-weight:700; margin-top:6px; overflow-wrap:anywhere; }
   .pron-foot{ text-align:center; font-size:11.5px; color:var(--sub); margin:12px 0 0; }
   .pron-tag{ display:inline-flex; align-items:center; height:22px; font-size:11.5px; font-weight:800; padding:0 8px; border-radius:7px; background:var(--blue-light); color:var(--blue); }
-  @media (prefers-reduced-motion: reduce){ .mic-btn.listening{ animation:none; } }
+  @media (prefers-reduced-motion: reduce){ .mic-btn.listening, .rec-dot, .rec-wave i{ animation:none; } }
   /* ----- 使い方の説明(初回に出す) ----- */
   .tut-overlay{ position:fixed; inset:0; z-index:150; background:var(--bg); display:flex; flex-direction:column; animation:fadeIn .2s ease-out; }
   .tut-inner{ flex:1; min-height:0; width:100%; max-width:560px; margin:0 auto; display:flex; flex-direction:column; padding:calc(10px + env(safe-area-inset-top)) 18px calc(16px + env(safe-area-inset-bottom)); }
@@ -544,6 +556,7 @@ const ICON = {
   bulb: s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
   help: s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="display:block;"><circle cx="12" cy="12" r="9.5" stroke="currentColor" stroke-width="2.2"/><path d="M9.3 9.4a2.8 2.8 0 1 1 3.9 2.6c-.8.4-1.2 1-1.2 1.8v.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="17.3" r="1.3" fill="currentColor"/></svg>`,
   share: s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="display:block;"><path d="M12 3v12M8 7l4-4 4 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 11H6.5A1.5 1.5 0 0 0 5 12.5v7A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5v-7a1.5 1.5 0 0 0-1.5-1.5H16" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>`,
+  stop: s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden="true" style="display:block;"><rect x="6" y="6" width="12" height="12" rx="2.5" fill="currentColor"/></svg>`,
   mic: s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="display:block; flex-shrink:0;"><rect x="8.5" y="2.5" width="7" height="12" rx="3.5" fill="currentColor"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>`,
   cards: s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="display:block;"><rect x="3" y="6" width="14" height="14" rx="3" stroke="currentColor" stroke-width="2.2"/><path d="M7 3h11a3 3 0 0 1 3 3v11" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>`
 };
@@ -1486,9 +1499,10 @@ function renderPron(){
         <button class="btn ghost" id="btnModelSlow">ゆっくり</button>
       </div>
     </div>
-    <div class="pron-mic-area">
-      <button class="mic-btn" id="micBtn" aria-label="マイクで話す">${ICON.mic(36)}</button>
-      <p class="mic-label" id="micLabel">マイクをタップしてから、英語で言ってみよう<br><small>（長押しは不要。話し終わると自動で止まります）</small></p>
+    <div class="pron-mic-area" id="micArea">
+      <button class="mic-btn" id="micBtn"></button>
+      <div class="mic-status" id="micStatus" aria-live="polite"></div>
+      <p class="mic-label" id="micLabel"></p>
       <p class="mic-interim" id="micInterim" lang="en"></p>
     </div>
     <div id="pronResult"></div>
@@ -1523,19 +1537,56 @@ function renderPron(){
   };
   if(pron.results[w.id]) showResult(pron.results[w.id]);
   micBtn.addEventListener("contextmenu", e => e.preventDefault());
+  const statusEl = document.getElementById("micStatus");
+  // マイクの状態を、ボタンの形・色と文字ではっきり見せる(いつ話し始めて、いつ終わればいいか分かるように)
+  //   idle=待機 / starting=準備中(まだ話さない) / recording=録音中(今話す) / scoring=採点中
+  let recTick = null;
+  const setMic = (st, msg) => {
+    micBtn.dataset.state = st;
+    micBtn.classList.toggle("listening", st === "recording");
+    micBtn.classList.toggle("starting", st === "starting");
+    micBtn.innerHTML = st === "recording" ? ICON.stop(32) : ICON.mic(36);
+    micBtn.setAttribute("aria-label", st === "recording" ? "録音を止める" : "録音をはじめる");
+    clearInterval(recTick);
+    if(st === "recording"){
+      const t0 = Date.now();
+      statusEl.innerHTML = `<span class="rec-pill"><span class="rec-dot"></span>録音中 <b id="recTime">0:00</b><span class="rec-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></span>`;
+      recTick = setInterval(() => {
+        const t = document.getElementById("recTime");
+        if(!t){ clearInterval(recTick); return; }
+        const sec = Math.floor((Date.now() - t0) / 1000);
+        t.textContent = `0:${String(sec).padStart(2, "0")}`;
+      }, 250);
+      label.innerHTML = `<b class="mic-now">今、英語で話してください</b><small>話し終わったら ■ をタップ（黙ると自動で止まります）</small>`;
+    } else if(st === "starting"){
+      statusEl.innerHTML = `<span class="rec-pill wait">準備中…</span>`;
+      label.innerHTML = `<small>まだ話さないでください。「録音中」と出たら話します</small>`;
+    } else if(st === "scoring"){
+      statusEl.innerHTML = `<span class="rec-pill wait">採点中…</span>`;
+      label.innerHTML = "";
+    } else {
+      statusEl.innerHTML = "";
+      label.innerHTML = msg || `マイクをタップすると録音が始まります<small>「録音中」と出たら英語で話してください</small>`;
+    }
+  };
+  setMic("idle", pron.results[w.id] ? `マイクをタップして、もう一度どうぞ` : "");
+  const SILENCE_MS = 2000, MAX_MS = 15000;
   micBtn.onclick = () => {
-    if(currentRec){ try{ currentRec.stop(); }catch(e){} return; } // 2回目のタップで話し終わり
+    const st = micBtn.dataset.state;
+    if(st === "recording"){ if(currentRec){ try{ currentRec.stop(); }catch(e){} } return; } // ■で話し終わり
+    if(st === "starting" || st === "scoring") return;
     stopSpeech(); // お手本の音を拾わないように止める
     const rec = new SpeechRec();
     rec.lang = "en-US";
     rec.interimResults = true;
     rec.maxAlternatives = 5;
-    rec.continuous = false;
-    let finals = [], alts = [], interim = "", err = null, timer = null;
+    rec.continuous = true; // ■を押すか、黙るまで聞き続ける(途中で勝手に切れないように)
+    let finals = [], alts = [], interim = "", err = null, maxTimer = null, silenceTimer = null;
+    const stopRec = () => { if(currentRec === rec){ try{ rec.stop(); }catch(e){} } };
     rec.onstart = () => {
-      micBtn.classList.add("listening");
-      label.textContent = "聞いています… 話し終わると自動で止まります";
+      setMic("recording");
       interimEl.textContent = "";
+      maxTimer = setTimeout(stopRec, MAX_MS);
     };
     rec.onresult = e => {
       finals = []; alts = []; interim = "";
@@ -1547,38 +1598,42 @@ function renderPron(){
         } else interim += r[0].transcript;
       }
       interimEl.textContent = (finals.join(" ") + " " + interim).trim();
+      // 何か聞き取れたあと、しばらく黙ったら話し終わりとみなす
+      clearTimeout(silenceTimer);
+      silenceTimer = setTimeout(stopRec, SILENCE_MS);
     };
     rec.onerror = e => { err = e.error; };
     rec.onend = () => {
-      clearTimeout(timer);
+      clearTimeout(maxTimer);
+      clearTimeout(silenceTimer);
       if(currentRec !== rec) return; // 画面を移ったときの中断
       currentRec = null;
-      micBtn.classList.remove("listening");
       const heardList = [finals.join(" "), ...alts, interim].map(x => x.trim()).filter(Boolean);
       if(heardList.length === 0){
-        label.textContent = err === "not-allowed" ? "マイクの使用が許可されていません。ブラウザの設定で、このページのマイクを「許可」にしてください"
+        setMic("idle", err === "not-allowed" ? "マイクの使用が許可されていません。ブラウザの設定で、このページのマイクを「許可」にしてください"
           : err === "service-not-allowed" ? "音声の聞き取りが使えません。iPhoneは「設定 → 一般 → キーボード → 音声入力」をオンにしてください"
           : err === "network" ? "通信できませんでした。インターネットにつながっているか確認してください"
           : err === "audio-capture" ? "マイクが見つかりませんでした"
-          : "聞き取れませんでした。もう一度マイクをタップして、はっきり話してください";
+          : "聞き取れませんでした<small>マイクをタップして、「録音中」と出てから話してください</small>");
         return;
       }
+      setMic("scoring");
       const r = bestPronScore(w.en, heardList);
       recordPron(w, r.score);
       pron.scores[w.id] = Math.max(pron.scores[w.id] ?? 0, r.score);
       pron.results[w.id] = r;
       showResult(r);
       interimEl.textContent = "";
-      label.textContent = r.score >= PRON_PASS ? "もう一度言うときはマイクをタップ" : "マイクをタップして、もう一度どうぞ";
+      setMic("idle", r.score >= PRON_PASS ? "もう一度言うときはマイクをタップ" : "マイクをタップして、もう一度どうぞ");
       nextBtn.innerHTML = `${nextLabel()}${ICON.right(18)}`;
     };
     currentRec = rec;
-    timer = setTimeout(() => { if(currentRec === rec){ try{ rec.stop(); }catch(e){} } }, 8000);
+    setMic("starting");
     try{ rec.start(); }
-    catch(e){ currentRec = null; label.textContent = "マイクを使い始められませんでした。もう一度押してください"; }
+    catch(e){ currentRec = null; setMic("idle", "マイクを使い始められませんでした。もう一度タップしてください"); }
   };
-  document.getElementById("btnModel").onclick = () => { stopListening(); micBtn.classList.remove("listening"); playEntry(w, "word"); };
-  document.getElementById("btnModelSlow").onclick = () => { stopListening(); micBtn.classList.remove("listening"); playEntry(w, "word", true); };
+  document.getElementById("btnModel").onclick = () => { stopListening(); setMic("idle"); playEntry(w, "word"); };
+  document.getElementById("btnModelSlow").onclick = () => { stopListening(); setMic("idle"); playEntry(w, "word", true); };
   document.getElementById("btnPronPause").onclick = finishPron;
   document.getElementById("btnPronPrev").onclick = () => { if(pron.idx > 0){ pron.idx--; render(); } };
   nextBtn.onclick = () => { pron.idx++; render(); };
@@ -1770,7 +1825,7 @@ const TUTORIAL = [
     text:`<p>一覧の下の「カードで覚える」から始めます。<br>カードをタップすると裏返り、<br>左右にスワイプすると次のカードへ進みます。</p>`,
     points:[{ side:"l", ax:0.04, ay:0.5 }] },
   { img:"pron", title:"発音チェック",
-    text:`<ol><li><b>1</b>「発音チェック」でマイクをタップして、英語で言ってみます（長押しは不要）</li><li><b>2</b>通じるかを0〜100点で採点。言えていない単語には赤い波線が付きます</li></ol>`,
+    text:`<ol><li><b>1</b>マイクをタップ →「録音中」と出たら英語で話し、終わったら ■ をタップ</li><li><b>2</b>通じるかを0〜100点で採点。言えていない単語には赤い波線が付きます</li></ol>`,
     points:[{ side:"r", ax:0.9 }, { side:"l", ax:0.08, ay:0.3 }] },
   { img:"add", title:"マイ単語帳に追加",
     text:`<ol><li><b>1</b>お客さまに言われた言葉やお店の言葉は、日本語を入れるだけ</li><li><b>2</b>英語の候補が出るので、選んで「追加する」を押せばOK</li></ol>`,
