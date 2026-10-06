@@ -358,7 +358,8 @@
   .tut-step{ font-size:13px; font-weight:800; color:var(--sub); }
   .tut-skip{ border:none; background:none; color:var(--sub); font-size:14px; font-weight:800; padding:8px 4px; cursor:pointer; }
   .tut-stage{ flex:1; min-height:0; display:flex; align-items:center; justify-content:center; padding:6px 0 10px; }
-  .tut-phone{ position:relative; height:100%; max-height:470px; aspect-ratio:375 / 812; border-radius:22px; border:3px solid var(--text); overflow:hidden; background:#fff; box-shadow:0 10px 30px rgba(0,0,0,.12); }
+  /* 枠は border ではなく影で描く(border にすると中の写真の縦横比が変わり、印の位置がずれる) */
+  .tut-phone{ position:relative; height:100%; max-height:470px; aspect-ratio:375 / 812; border-radius:20px; overflow:hidden; background:#fff; box-shadow:0 0 0 3px var(--text), 0 10px 30px rgba(0,0,0,.12); }
   .tut-phone img{ display:block; width:100%; height:100%; object-fit:cover; }
   .tut-mark{ position:absolute; border:3px solid #FF8A1F; border-radius:12px; box-shadow:0 0 0 3px rgba(255,138,31,.25); animation:tutPulse 1.6s ease-in-out infinite; pointer-events:none; }
   .tut-num{ position:absolute; top:-12px; left:-12px; width:24px; height:24px; border-radius:50%; background:#FF8A1F; color:#fff; font-size:13px; font-weight:800; display:flex; align-items:center; justify-content:center; font-family:var(--font-ui); }
@@ -389,6 +390,8 @@
 <script src="phrases-data.js"></script>
 <!-- お手本音声(AI音声)の一覧。tools/make-audio.mjs が作る -->
 <script src="audio/manifest.js"></script>
+<!-- 使い方の説明の印の位置。tools/make-shots.sh が写真と一緒に書き出す -->
+<script src="tutorial/marks.js"></script>
 <script>
 "use strict";
 /* ベビー用品店の接客英語アプリ(Webアプリ版)。
@@ -1748,23 +1751,20 @@ function showImportSheet(){
 
 /* ===================== 使い方の説明 =====================
    実際の画面の写真(tutorial/*.jpg)に、押すところの印を重ねて見せる。初めて開いたときに自動で出し、ホームの「？」と設定からも見られる。
-   写真は tools/make-shots.sh で撮り直せる。画面を変えたら、写真と印の位置(mark の数字。左・上・幅・高さを画面に対する%で。5つめに "r" を付けると番号を右上に、"rb" で右下に出す)も合わせて直す。 */
+   画面を変えたら tools/make-shots.sh で写真を撮り直す。印の位置(tutorial/marks.js)も同時に測り直される。
+   どの部品に印を付けるかは tools/shot.html の marks。番号は左上に出し、numPos で "r"(右上)・"rb"(右下)にも変えられる。 */
 const TUTORIAL = [
   { img:"home", title:"ようこそ！",
-    text:`<p>ベビーカー売り場でよく使う英単語とフレーズが、<br>4つのカテゴリに入っています。<br>まずは気になるカテゴリを開いてみましょう。</p>`,
-    marks:[[4.3, 38.4, 91.5, 44.6]] },
+    text:`<p>ベビーカー売り場でよく使う英単語とフレーズが、<br>4つのカテゴリに入っています。<br>まずは気になるカテゴリを開いてみましょう。</p>`, },
   { img:"cat", title:"単語の一覧",
     text:`<ol><li><b>1</b>青いボタンで、お手本の発音を聞けます</li><li><b>2</b>♡を押すと、マイ単語帳に入ります</li><li><b>3</b>単語をタップすると、例文が開きます</li></ol>`,
-    marks:[[81.3, 36, 11.2, 5.2, "r"], [81.3, 41.9, 11.2, 4.7, "rb"], [7.5, 46.4, 71.2, 10.2]] },
+    numPos:["r", "rb"] },
   { img:"flash", title:"カードで覚える",
-    text:`<ol><li><b>1</b>一覧の下の「カードで覚える」から始めます。カードをタップすると裏返ります</li><li><b>2</b>覚えたら「覚えた」を押しておきましょう</li></ol>`,
-    marks:[[4.3, 11.8, 91.5, 50], [36.1, 63.3, 27.7, 4.9]] },
+    text:`<ol><li><b>1</b>一覧の下の「カードで覚える」から始めます。カードをタップすると裏返ります</li><li><b>2</b>覚えたら「覚えた」を押しておきましょう</li></ol>`, },
   { img:"pron", title:"発音チェック",
-    text:`<ol><li><b>1</b>「発音チェック」でマイクを押して、英語で言ってみます</li><li><b>2</b>通じるかを0〜100点で採点。言えていない単語には赤い波線が付きます</li></ol>`,
-    marks:[[38.8, 33.8, 22.4, 10.3], [4.3, 52.4, 91.5, 20.5]] },
+    text:`<ol><li><b>1</b>「発音チェック」でマイクを押して、英語で言ってみます</li><li><b>2</b>通じるかを0〜100点で採点。言えていない単語には赤い波線が付きます</li></ol>`, },
   { img:"add", title:"マイ単語帳に追加",
-    text:`<ol><li><b>1</b>お客さまに言われた言葉やお店の言葉は、日本語を入れるだけ</li><li><b>2</b>英語の候補が出るので、選んで「追加する」を押せばOK</li></ol>`,
-    marks:[[4.8, 38.7, 90.4, 7], [4.8, 46.7, 90.4, 24.5]] },
+    text:`<ol><li><b>1</b>お客さまに言われた言葉やお店の言葉は、日本語を入れるだけ</li><li><b>2</b>英語の候補が出るので、選んで「追加する」を押せばOK</li></ol>`, },
   { art:"home", title:"ホーム画面に追加しよう",
     text:`<p>iPhone は Safari の共有ボタンから<br>「ホーム画面に追加」を選ぶと、<br>アプリのようにすぐ開けます。</p>` }
 ];
@@ -1788,9 +1788,11 @@ function showTutorial(){
   const draw = () => {
     const t = TUTORIAL[i];
     const last = i === TUTORIAL.length - 1;
+    const marks = (t.img && window.TUTORIAL_MARKS && window.TUTORIAL_MARKS[t.img] || []).filter(Boolean);
+    const numPos = t.numPos || [];
     const stage = t.img
-      ? `<div class="tut-phone"><img src="tutorial/${t.img}.jpg" alt="${esc(t.title)}の画面">${(t.marks || []).map((m, k) =>
-          `<div class="tut-mark" style="left:${m[0]}%; top:${m[1]}%; width:${m[2]}%; height:${m[3]}%;">${t.marks.length > 1 ? `<span class="tut-num${m[4] ? " " + m[4] : ""}">${k + 1}</span>` : ""}</div>`).join("")}</div>`
+      ? `<div class="tut-phone"><img src="tutorial/${t.img}.jpg" alt="${esc(t.title)}の画面">${marks.map((m, k) =>
+          `<div class="tut-mark" style="left:${m[0]}%; top:${m[1]}%; width:${m[2]}%; height:${m[3]}%;">${marks.length > 1 ? `<span class="tut-num${numPos[k] ? " " + numPos[k] : ""}">${k + 1}</span>` : ""}</div>`).join("")}</div>`
       : `<div class="tut-art">
           <div class="tut-art-icon"><img src="icons/icon-192.png" alt="" width="96" height="96" style="display:block;"></div>
           <div class="tut-art-steps"><span>${ICON.share(18)}共有</span>→<span>ホーム画面に追加</span></div>
