@@ -10,6 +10,11 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#14161C" media="(prefers-color-scheme: dark)">
 <title>ベビー接客えいご</title>
+<!-- ホーム画面に追加したときのアイコン(元の絵は icons/icon.svg。tools/make-icons.sh でPNGを作る) -->
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap" rel="stylesheet">
@@ -346,6 +351,37 @@
   .pron-foot{ text-align:center; font-size:11.5px; color:var(--sub); margin:12px 0 0; }
   .pron-tag{ display:inline-flex; align-items:center; height:22px; font-size:11.5px; font-weight:800; padding:0 8px; border-radius:7px; background:var(--blue-light); color:var(--blue); }
   @media (prefers-reduced-motion: reduce){ .mic-btn.listening{ animation:none; } }
+  /* ----- 使い方の説明(初回に出す) ----- */
+  .tut-overlay{ position:fixed; inset:0; z-index:150; background:var(--bg); display:flex; flex-direction:column; animation:fadeIn .2s ease-out; }
+  .tut-inner{ flex:1; min-height:0; width:100%; max-width:560px; margin:0 auto; display:flex; flex-direction:column; padding:calc(10px + env(safe-area-inset-top)) 18px calc(16px + env(safe-area-inset-bottom)); }
+  .tut-top{ display:flex; justify-content:space-between; align-items:center; min-height:40px; }
+  .tut-step{ font-size:13px; font-weight:800; color:var(--sub); }
+  .tut-skip{ border:none; background:none; color:var(--sub); font-size:14px; font-weight:800; padding:8px 4px; cursor:pointer; }
+  .tut-stage{ flex:1; min-height:0; display:flex; align-items:center; justify-content:center; padding:6px 0 10px; }
+  .tut-phone{ position:relative; height:100%; max-height:470px; aspect-ratio:375 / 812; border-radius:22px; border:3px solid var(--text); overflow:hidden; background:#fff; box-shadow:0 10px 30px rgba(0,0,0,.12); }
+  .tut-phone img{ display:block; width:100%; height:100%; object-fit:cover; }
+  .tut-mark{ position:absolute; border:3px solid #FF8A1F; border-radius:12px; box-shadow:0 0 0 3px rgba(255,138,31,.25); animation:tutPulse 1.6s ease-in-out infinite; pointer-events:none; }
+  .tut-num{ position:absolute; top:-12px; left:-12px; width:24px; height:24px; border-radius:50%; background:#FF8A1F; color:#fff; font-size:13px; font-weight:800; display:flex; align-items:center; justify-content:center; font-family:var(--font-ui); }
+  .tut-num.r{ left:auto; right:-12px; }
+  .tut-num.rb{ left:auto; right:-12px; top:auto; bottom:-12px; }
+  @keyframes tutPulse{ 0%,100%{ box-shadow:0 0 0 3px rgba(255,138,31,.25); } 50%{ box-shadow:0 0 0 7px rgba(255,138,31,.12); } }
+  .tut-art{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; text-align:center; }
+  .tut-art-icon{ width:96px; height:96px; border-radius:24px; overflow:hidden; box-shadow:0 8px 20px rgba(0,0,0,.15); }
+  .tut-art-steps{ display:flex; align-items:center; gap:10px; font-size:14px; font-weight:800; color:var(--sub); }
+  .tut-art-steps span{ display:inline-flex; align-items:center; gap:6px; padding:8px 12px; border-radius:12px; background:var(--track); color:var(--text); }
+  .tut-title{ font-size:20px; font-weight:800; margin:0 0 6px; text-align:center; }
+  .tut-text{ font-size:14.5px; line-height:1.65; margin:0; color:var(--text); }
+  .tut-text ol{ margin:0; padding-left:0; list-style:none; }
+  .tut-text li{ display:flex; gap:8px; align-items:flex-start; margin-bottom:4px; }
+  .tut-text li b{ flex-shrink:0; width:20px; height:20px; margin-top:2px; border-radius:50%; background:#FF8A1F; color:#fff; font-size:11.5px; display:flex; align-items:center; justify-content:center; }
+  .tut-text p{ margin:0; text-align:center; }
+  .tut-dots{ display:flex; justify-content:center; gap:6px; margin:12px 0 4px; }
+  .tut-dots i{ width:7px; height:7px; border-radius:50%; background:var(--hair); }
+  .tut-dots i.on{ width:20px; border-radius:4px; background:var(--accent); }
+  .tut-nav{ display:flex; gap:10px; }
+  .tut-nav .btn{ margin-top:8px; }
+  .tut-nav .btn.secondary{ flex:0 0 34%; }
+  @media (prefers-reduced-motion: reduce){ .tut-mark{ animation:none; } }
 </style>
 </head>
 <body>
@@ -392,7 +428,8 @@ function defaultState(){
     flashFront: "en",   // フラッシュカードの表の面: "en" | "ja"
     speechRate: "normal", // "normal" | "slow"
     autoSpeak: true,    // フラッシュカードで英語が見えたら読み上げる
-    pron: {}            // 発音チェックの記録: id -> {n:回数, ok:80点以上の回数, best:最高点}
+    pron: {},           // 発音チェックの記録: id -> {n:回数, ok:80点以上の回数, best:最高点}
+    tutorialSeen: false // 使い方の説明を見終わったか(初めて開いたときだけ自動で出す)
   };
 }
 const asStr = v => typeof v === "string" ? v : "";
@@ -502,6 +539,8 @@ const ICON = {
   sliders: s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="display:block;"><path d="M4 7h10M18 7h2M4 17h4M12 17h8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="16" cy="7" r="2.3" stroke="currentColor" stroke-width="2.2"/><circle cx="10" cy="17" r="2.3" stroke="currentColor" stroke-width="2.2"/></svg>`,
   dots: s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden="true" style="display:block;"><circle cx="5" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="19" cy="12" r="2" fill="currentColor"/></svg>`,
   bulb: s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  help: s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="display:block;"><circle cx="12" cy="12" r="9.5" stroke="currentColor" stroke-width="2.2"/><path d="M9.3 9.4a2.8 2.8 0 1 1 3.9 2.6c-.8.4-1.2 1-1.2 1.8v.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="17.3" r="1.3" fill="currentColor"/></svg>`,
+  share: s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="display:block;"><path d="M12 3v12M8 7l4-4 4 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 11H6.5A1.5 1.5 0 0 0 5 12.5v7A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5v-7a1.5 1.5 0 0 0-1.5-1.5H16" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>`,
   mic: s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="display:block; flex-shrink:0;"><rect x="8.5" y="2.5" width="7" height="12" rx="3.5" fill="currentColor"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>`,
   cards: s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="display:block;"><rect x="3" y="6" width="14" height="14" rx="3" stroke="currentColor" stroke-width="2.2"/><path d="M7 3h11a3 3 0 0 1 3 3v11" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>`
 };
@@ -685,7 +724,10 @@ function renderHome(){
         <div class="brand">ベビー接客えいご</div>
         <div class="brand-sub">ベビーカー・ベビー用品の売り場で使える英語</div>
       </div>
-      <button class="icon-btn" id="btnSettings" aria-label="設定">${ICON.sliders(22)}</button>
+      <div style="display:flex; margin-right:-8px;">
+        <button class="icon-btn" id="btnHelp" aria-label="使い方">${ICON.help(22)}</button>
+        <button class="icon-btn" id="btnSettings" aria-label="設定">${ICON.sliders(22)}</button>
+      </div>
     </header>
     <section class="my-card">
       <button class="my-card-main" id="btnOpenMy">
@@ -702,6 +744,7 @@ function renderHome(){
     <div id="homeBody"></div>
   `;
   document.getElementById("btnSettings").onclick = showSettingsSheet;
+  document.getElementById("btnHelp").onclick = () => showTutorial();
   document.getElementById("btnOpenMy").onclick = () => go("my");
   document.getElementById("btnQuickAdd").onclick = () => showAddWordSheet(null, () => renderHome());
   document.getElementById("btnMyFlash").onclick = () => { myFilter = "all"; startFlash(getMyEntries("all"), "マイ単語帳", { view:"home" }, "indiv"); };
@@ -1584,6 +1627,9 @@ function showSettingsSheet(){
       <p class="sub" style="font-size:12px; margin-top:8px;">${Object.keys(AUDIO).length ? "収録済みの単語・例文のお手本は、音声合成AI（Kokoro）で作った音声です。自分で追加した単語は、端末の読み上げ機能で再生します。" : "お手本は端末の読み上げ機能で再生しています。"}</p>
     </div>
     <div class="settings-group">
+      <button class="btn secondary" id="btnShowTutorial" style="display:flex; align-items:center; justify-content:center; gap:6px;">${ICON.help(18)}使い方を見る</button>
+    </div>
+    <div class="settings-group">
       <div class="opt-label">データ</div>
       <p class="sub" style="font-size:13px;">マイ単語帳と「覚えた」は、このブラウザの中にだけ保存されます。機種変更やブラウザのデータ削除の前に、バックアップを書き出しておいてください。</p>
       <button class="btn ghost" id="btnExport">バックアップを書き出す</button>
@@ -1598,6 +1644,7 @@ function showSettingsSheet(){
   $("#autoSpeak").onchange = e => { state.autoSpeak = e.target.checked; saveState(); };
   $("#btnTestSpeak").onclick = () => playEntry(BUILTIN.find(w => w.cat === "phrase") || BUILTIN[0], "word");
   $("#btnExport").onclick = showExportSheet;
+  $("#btnShowTutorial").onclick = () => { document.querySelectorAll(".sheet-overlay").forEach(o => o._close()); showTutorial(); };
   $("#btnImport").onclick = showImportSheet;
   $("#btnResetLearned").onclick = () => {
     if(state.learned.length === 0){ toast("「覚えた」はまだありません"); return; }
@@ -1699,15 +1746,98 @@ function showImportSheet(){
   };
 }
 
+/* ===================== 使い方の説明 =====================
+   実際の画面の写真(tutorial/*.jpg)に、押すところの印を重ねて見せる。初めて開いたときに自動で出し、ホームの「？」と設定からも見られる。
+   写真は tools/make-shots.sh で撮り直せる。画面を変えたら、写真と印の位置(mark の数字。左・上・幅・高さを画面に対する%で。5つめに "r" を付けると番号を右上に、"rb" で右下に出す)も合わせて直す。 */
+const TUTORIAL = [
+  { img:"home", title:"ようこそ！",
+    text:`<p>ベビーカー売り場でよく使う英単語とフレーズが、<br>4つのカテゴリに入っています。<br>まずは気になるカテゴリを開いてみましょう。</p>`,
+    marks:[[4.3, 38.4, 91.5, 44.6]] },
+  { img:"cat", title:"単語の一覧",
+    text:`<ol><li><b>1</b>青いボタンで、お手本の発音を聞けます</li><li><b>2</b>♡を押すと、マイ単語帳に入ります</li><li><b>3</b>単語をタップすると、例文が開きます</li></ol>`,
+    marks:[[81.3, 36, 11.2, 5.2, "r"], [81.3, 41.9, 11.2, 4.7, "rb"], [7.5, 46.4, 71.2, 10.2]] },
+  { img:"flash", title:"カードで覚える",
+    text:`<ol><li><b>1</b>一覧の下の「カードで覚える」から始めます。カードをタップすると裏返ります</li><li><b>2</b>覚えたら「覚えた」を押しておきましょう</li></ol>`,
+    marks:[[4.3, 11.8, 91.5, 50], [36.1, 63.3, 27.7, 4.9]] },
+  { img:"pron", title:"発音チェック",
+    text:`<ol><li><b>1</b>「発音チェック」でマイクを押して、英語で言ってみます</li><li><b>2</b>通じるかを0〜100点で採点。言えていない単語には赤い波線が付きます</li></ol>`,
+    marks:[[38.8, 33.8, 22.4, 10.3], [4.3, 52.4, 91.5, 20.5]] },
+  { img:"add", title:"マイ単語帳に追加",
+    text:`<ol><li><b>1</b>お客さまに言われた言葉やお店の言葉は、日本語を入れるだけ</li><li><b>2</b>英語の候補が出るので、選んで「追加する」を押せばOK</li></ol>`,
+    marks:[[4.8, 38.7, 90.4, 7], [4.8, 46.7, 90.4, 24.5]] },
+  { art:"home", title:"ホーム画面に追加しよう",
+    text:`<p>iPhone は Safari の共有ボタンから<br>「ホーム画面に追加」を選ぶと、<br>アプリのようにすぐ開けます。</p>` }
+];
+function showTutorial(){
+  if(document.querySelector(".tut-overlay")) return;
+  stopSpeech();
+  let i = 0;
+  const ov = document.createElement("div");
+  ov.className = "tut-overlay";
+  ov.setAttribute("role", "dialog");
+  ov.setAttribute("aria-modal", "true");
+  ov.setAttribute("aria-label", "使い方");
+  document.body.appendChild(ov);
+  document.body.classList.add("sheet-open");
+  const close = () => {
+    ov.remove();
+    if(!document.querySelector(".sheet-overlay")) document.body.classList.remove("sheet-open");
+    if(!state.tutorialSeen){ state.tutorialSeen = true; saveState(); }
+  };
+  ov._close = close;
+  const draw = () => {
+    const t = TUTORIAL[i];
+    const last = i === TUTORIAL.length - 1;
+    const stage = t.img
+      ? `<div class="tut-phone"><img src="tutorial/${t.img}.jpg" alt="${esc(t.title)}の画面">${(t.marks || []).map((m, k) =>
+          `<div class="tut-mark" style="left:${m[0]}%; top:${m[1]}%; width:${m[2]}%; height:${m[3]}%;">${t.marks.length > 1 ? `<span class="tut-num${m[4] ? " " + m[4] : ""}">${k + 1}</span>` : ""}</div>`).join("")}</div>`
+      : `<div class="tut-art">
+          <div class="tut-art-icon"><img src="icons/icon-192.png" alt="" width="96" height="96" style="display:block;"></div>
+          <div class="tut-art-steps"><span>${ICON.share(18)}共有</span>→<span>ホーム画面に追加</span></div>
+        </div>`;
+    ov.innerHTML = `<div class="tut-inner">
+      <div class="tut-top"><span class="tut-step">使い方 ${i + 1} / ${TUTORIAL.length}</span>${last ? "<span></span>" : `<button class="tut-skip" id="tutSkip">スキップ</button>`}</div>
+      <div class="tut-stage">${stage}</div>
+      <h1 class="tut-title">${t.title}</h1>
+      <div class="tut-text">${t.text}</div>
+      <div class="tut-dots" aria-hidden="true">${TUTORIAL.map((_, k) => `<i class="${k === i ? "on" : ""}"></i>`).join("")}</div>
+      <div class="tut-nav">
+        ${i > 0 ? `<button class="btn secondary" id="tutPrev">戻る</button>` : ""}
+        <button class="btn" id="tutNext">${last ? "はじめる" : "次へ"}</button>
+      </div>
+    </div>`;
+    const skip = ov.querySelector("#tutSkip");
+    if(skip) skip.onclick = close;
+    const prev = ov.querySelector("#tutPrev");
+    if(prev) prev.onclick = () => { i--; draw(); };
+    ov.querySelector("#tutNext").onclick = () => { if(last) close(); else { i++; draw(); } };
+    // 次の写真を先に読み込んでおく
+    const next = TUTORIAL[i + 1];
+    if(next && next.img) new Image().src = `tutorial/${next.img}.jpg`;
+  };
+  // 左右のスワイプでも進む・戻る
+  let sx = null, sy = null;
+  ov.addEventListener("touchstart", e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive:true });
+  ov.addEventListener("touchend", e => {
+    if(sx === null) return;
+    const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+    sx = null;
+    if(Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy)) return;
+    if(dx < 0 && i < TUTORIAL.length - 1){ i++; draw(); }
+    else if(dx > 0 && i > 0){ i--; draw(); }
+  });
+  draw();
+}
+
 /* ===================== キーボード(パソコンで使うとき) ===================== */
 document.addEventListener("keydown", e => {
   if(e.key === "Escape"){
-    const overlays = document.querySelectorAll(".sheet-overlay");
+    const overlays = document.querySelectorAll(".sheet-overlay, .tut-overlay");
     if(overlays.length){ overlays[overlays.length - 1]._close(); return; }
     closePopMenu();
     return;
   }
-  if(!flashControls || document.querySelector(".sheet-overlay")) return;
+  if(!flashControls || document.querySelector(".sheet-overlay, .tut-overlay")) return;
   if(e.target.closest && e.target.closest("input, textarea")) return;
   if(e.key === "ArrowRight"){ e.preventDefault(); flashControls.next(); }
   else if(e.key === "ArrowLeft"){ e.preventDefault(); flashControls.prev(); }
@@ -1715,6 +1845,7 @@ document.addEventListener("keydown", e => {
 });
 
 render();
+if(!state.tutorialSeen) showTutorial();
 </script>
 </body>
 </html>

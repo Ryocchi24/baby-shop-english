@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<!-- 使い方の説明に載せる画面写真を撮るための補助ページ(アプリ本体には含まれない)。
+     tools/make-shots.sh から ?s=画面名 で開き、本物の index.html を iframe で表示して決まった状態にしてから撮影する。
+     ?s=…&rects=1 のときは、印を付ける部品の位置(%)を #out に書き出す。 -->
+<html lang="ja"><head><meta charset="UTF-8">
+<style>html,body{margin:0;padding:0;background:#fff;overflow:hidden;} iframe{display:block;width:375px;height:812px;border:0;}</style>
+</head><body>
+<pre id="out"></pre>
+<script>
+const params = new URLSearchParams(location.search);
+const scene = params.get("s") || "home";
+// 撮影用の見本データ(マイ単語帳に少し入っている状態)
+localStorage.setItem("babyShopEnglish.v1", JSON.stringify({
+  favorites: ["stroller-2", "shop-4", "phrase-7"],
+  customWords: [
+    { id:"c1", en:"Can I bring it on the plane?", ja:"飛行機に持ち込めますか？", pos:"お客さまの質問", ex_en:"", ex_ja:"", note:"" },
+    { id:"c2", en:"Do you have this in black?", ja:"これの黒はありますか？", pos:"お客さまの質問", ex_en:"", ex_ja:"", note:"" }
+  ],
+  nextCustomId: 3, learned: ["shop-4"], seenAt: {}, seenCount: 0, flashFront: "en",
+  speechRate: "normal", autoSpeak: false, tutorialSeen: true,
+  pron: { "stroller-1": { n:2, ok:2, best:96 }, "stroller-2": { n:1, ok:0, best:72 } }
+}));
+const SCENES = {
+  home: { run: "", marks: [".cat-list", ".my-card"] },
+  cat: { run: "currentCatId='stroller'; go('cat'); document.querySelectorAll('#catRows [data-toggle]')[1].click();",
+    marks: ["#catRows .item-row:nth-child(2) [data-act=speak]", "#catRows .item-row:nth-child(2) [data-act=fav]", "#catRows .item-row:nth-child(2) .item-body", "#btnCatFlash", "#btnCatPron"] },
+  flash: { run: "currentCatId='stroller'; startFlash(itemsOfCat('stroller'), 'ベビーカー', {view:'cat', catId:'stroller'}, 'accent'); document.getElementById('btnFlashStart').click(); flash.queue = [BUILTIN_MAP.get('stroller-18'), ...flash.queue.filter(w => w.id !== 'stroller-18')]; render();",
+    marks: ["#flashInner", "#flashLearn", ".flash-nav"] },
+  pron: { run: "currentCatId='phrase'; startPron(itemsOfCat('phrase'), '接客のひと言', {view:'cat', catId:'phrase'}, 'accent'); const w = BUILTIN_MAP.get('phrase-7'); pron.queue = [w, ...pron.queue.filter(x => x !== w)]; pron.idx = 0; const r = scorePron(w.en, 'would you like to try'); pron.results[w.id] = r; pron.scores[w.id] = r.score; render(); document.getElementById('micLabel').textContent = 'マイクを押して、もう一度どうぞ';",
+    marks: ["#micBtn", ".pron-result", "#btnModel"] },
+  add: { run: "translateCache.set('機内持ち込み', ['carry-on']); go('my'); showAddWordSheet(null, () => {}); const j = document.getElementById('inJa'); j.value = '機内持ち込み'; j.dispatchEvent(new InputEvent('input')); document.querySelectorAll('#suggestBox .suggest-item')[1].click(); document.activeElement && document.activeElement.blur();",
+    marks: ["#inJa", "#suggestBox", "#btnSubmit"] },
+  my: { run: "go('my');", marks: ["#btnAdd", "#myRows .learn-check", "#btnMyFlash"] }
+};
+const f = document.createElement("iframe");
+f.src = "../index.html";
+f.onload = () => {
+  const W = f.contentWindow;
+  // フォントの読み込みを待ってから画面を作る
+  (W.document.fonts ? W.document.fonts.ready : Promise.resolve()).then(() => {
+    W.eval(SCENES[scene].run);
+    setTimeout(() => {
+      if(params.get("rects")){
+        const out = {};
+        SCENES[scene].marks.forEach(sel => {
+          const el = W.document.querySelector(sel);
+          if(!el) return;
+          const r = el.getBoundingClientRect();
+          out[sel] = [r.left / 375, r.top / 812, r.width / 375, r.height / 812].map(v => Math.round(v * 1000) / 10);
+        });
+        document.getElementById("out").textContent = JSON.stringify(out);
+      }
+    }, 900);
+  });
+};
+document.body.appendChild(f);
+</script>
+</body></html>
