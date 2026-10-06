@@ -1603,7 +1603,8 @@ function renderPron(){
     const note = name => { if(diag.length < 12) diag.push(`${name}@${((Date.now() - t0) / 1000).toFixed(1)}`); };
     const diagText = () => `<small class="mic-diag">詳細: ${esc(diag.join(" ") || "合図なし")}${err ? ` / ${esc(err)}` : ""}</small>`;
     const stopRec = () => { if(currentRec === rec){ try{ rec.stop(); }catch(e){} } };
-    // 「準備中」のまま進まないとき(許可の確認待ち・使えないブラウザ)の案内と、打ち切り
+    // 「準備中」のまま進まないとき(許可の確認待ち・使えないブラウザ)の案内と、打ち切り。
+    // 初めてのときは iPhone の「音声認識」と「マイク」の許可の確認が続けて出るので、それに答える時間を見て長めに待つ
     const hintTimer = setTimeout(() => {
       if(currentRec === rec && micBtn.dataset.state === "starting") label.innerHTML = `<small>「マイク」や「音声認識」の許可の確認が出ていたら、「許可」を押してください</small>`;
     }, 3000);
@@ -1611,7 +1612,7 @@ function renderPron(){
       if(currentRec !== rec || micBtn.dataset.state !== "starting") return;
       stopListening();
       setMic("idle", `マイクを始められませんでした<small>${IS_IOS ? "iPhone は Safari で開いてください。" : ""}ブラウザの設定で、このページのマイクが「許可」になっているか確認してください</small>${diagText()}`);
-    }, 10000);
+    }, 30000);
     // 録音が始まった合図。ブラウザによって onstart が来ないことがあるので、音を拾い始めた・声を検知した・文字が返ってきた、のどれでも始まったとみなす
     const markStarted = () => {
       if(started || currentRec !== rec) return;
