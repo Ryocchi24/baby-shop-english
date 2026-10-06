@@ -357,15 +357,14 @@
   .tut-top{ display:flex; justify-content:space-between; align-items:center; min-height:40px; }
   .tut-step{ font-size:13px; font-weight:800; color:var(--sub); }
   .tut-skip{ border:none; background:none; color:var(--sub); font-size:14px; font-weight:800; padding:8px 4px; cursor:pointer; }
-  .tut-stage{ flex:1; min-height:0; display:flex; align-items:center; justify-content:center; padding:6px 0 10px; }
-  /* 枠は border ではなく影で描く(border にすると中の写真の縦横比が変わり、印の位置がずれる) */
-  .tut-phone{ position:relative; height:100%; max-height:470px; aspect-ratio:375 / 812; border-radius:20px; overflow:hidden; background:#fff; box-shadow:0 0 0 3px var(--text), 0 10px 30px rgba(0,0,0,.12); }
-  .tut-phone img{ display:block; width:100%; height:100%; object-fit:cover; }
-  .tut-mark{ position:absolute; border:3px solid #FF8A1F; border-radius:12px; box-shadow:0 0 0 3px rgba(255,138,31,.25); animation:tutPulse 1.6s ease-in-out infinite; pointer-events:none; }
-  .tut-num{ position:absolute; top:-12px; left:-12px; width:24px; height:24px; border-radius:50%; background:#FF8A1F; color:#fff; font-size:13px; font-weight:800; display:flex; align-items:center; justify-content:center; font-family:var(--font-ui); }
-  .tut-num.r{ left:auto; right:-12px; }
-  .tut-num.rb{ left:auto; right:-12px; top:auto; bottom:-12px; }
-  @keyframes tutPulse{ 0%,100%{ box-shadow:0 0 0 3px rgba(255,138,31,.25); } 50%{ box-shadow:0 0 0 7px rgba(255,138,31,.12); } }
+  .tut-stage{ flex:1; min-height:0; position:relative; margin:6px 0 10px; }
+  /* 写真の大きさと矢印の位置は JS で px で決める(CSS の比率まかせだと、ブラウザによって写真の端が切れて矢印がずれるため) */
+  .tut-phone{ position:absolute; border-radius:18px; overflow:hidden; background:#fff; box-shadow:0 0 0 3px var(--text), 0 10px 30px rgba(0,0,0,.12); }
+  .tut-phone img{ display:block; width:100%; height:100%; }
+  .tut-arrows{ position:absolute; left:0; top:0; overflow:visible; pointer-events:none; }
+  .tut-badge{ position:absolute; width:28px; height:28px; margin:-14px 0 0 -14px; border-radius:50%; background:#FF8A1F; color:#fff; font-size:14px; font-weight:800; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,.2); }
+  .tut-target{ fill:none; stroke:#FF8A1F; stroke-width:3; animation:tutPulse 1.4s ease-in-out infinite; transform-box:fill-box; transform-origin:center; }
+  @keyframes tutPulse{ 0%,100%{ transform:scale(1); opacity:1; } 50%{ transform:scale(1.35); opacity:.55; } }
   .tut-art{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; text-align:center; }
   .tut-art-icon{ width:96px; height:96px; border-radius:24px; overflow:hidden; box-shadow:0 8px 20px rgba(0,0,0,.15); }
   .tut-art-steps{ display:flex; align-items:center; gap:10px; font-size:14px; font-weight:800; color:var(--sub); }
@@ -382,7 +381,7 @@
   .tut-nav{ display:flex; gap:10px; }
   .tut-nav .btn{ margin-top:8px; }
   .tut-nav .btn.secondary{ flex:0 0 34%; }
-  @media (prefers-reduced-motion: reduce){ .tut-mark{ animation:none; } }
+  @media (prefers-reduced-motion: reduce){ .tut-target{ animation:none; } }
 </style>
 </head>
 <body>
@@ -390,8 +389,6 @@
 <script src="phrases-data.js"></script>
 <!-- お手本音声(AI音声)の一覧。tools/make-audio.mjs が作る -->
 <script src="audio/manifest.js"></script>
-<!-- 使い方の説明の印の位置。tools/make-shots.sh が写真と一緒に書き出す -->
-<script src="tutorial/marks.js"></script>
 <script>
 "use strict";
 /* ベビー用品店の接客英語アプリ(Webアプリ版)。
@@ -1751,24 +1748,35 @@ function showImportSheet(){
 
 /* ===================== 使い方の説明 =====================
    実際の画面の写真(tutorial/*.jpg)に、押すところの印を重ねて見せる。初めて開いたときに自動で出し、ホームの「？」と設定からも見られる。
-   画面を変えたら tools/make-shots.sh で写真を撮り直す。印の位置(tutorial/marks.js)も同時に測り直される。
-   どの部品に印を付けるかは tools/shot.html の marks。番号は左上に出し、numPos で "r"(右上)・"rb"(右下)にも変えられる。 */
+   画面を変えたら tools/make-shots.sh で写真を撮り直す。部品の位置(tutorial/marks.json)も同じ Chrome で同時に測り直される。
+   どの部品を指すかは tools/shot.html の marks(その順番が番号になる)。矢印の出し方は各ページの points で決める:
+   side は番号を写真の左("l")・右("r")のどちらに置くか、ax・ay は部品の中のどこを指すか(0〜1。省略すると真ん中)。 */
 const TUTORIAL = [
   { img:"home", title:"ようこそ！",
-    text:`<p>ベビーカー売り場でよく使う英単語とフレーズが、<br>4つのカテゴリに入っています。<br>まずは気になるカテゴリを開いてみましょう。</p>`, },
+    text:`<p>ベビーカー売り場でよく使う英単語とフレーズが、<br>4つのカテゴリに入っています。<br>まずは気になるカテゴリを開いてみましょう。</p>`,
+    points:[{ side:"r", ax:0.8, ay:0.11 }] },
   { img:"cat", title:"単語の一覧",
     text:`<ol><li><b>1</b>青いボタンで、お手本の発音を聞けます</li><li><b>2</b>♡を押すと、マイ単語帳に入ります</li><li><b>3</b>単語をタップすると、例文が開きます</li></ol>`,
-    numPos:["r", "rb"] },
+    points:[{ side:"r" }, { side:"r" }, { side:"l", ax:0.12 }] },
   { img:"flash", title:"カードで覚える",
-    text:`<ol><li><b>1</b>一覧の下の「カードで覚える」から始めます。カードをタップすると裏返ります</li><li><b>2</b>覚えたら「覚えた」を押しておきましょう</li></ol>`, },
+    text:`<ol><li><b>1</b>一覧の下の「カードで覚える」から始めます。カードをタップすると裏返ります</li><li><b>2</b>覚えたら「覚えた」を押しておきましょう</li></ol>`,
+    points:[{ side:"l", ax:0.08, ay:0.35 }, { side:"r", ax:0.92 }] },
   { img:"pron", title:"発音チェック",
-    text:`<ol><li><b>1</b>「発音チェック」でマイクを押して、英語で言ってみます</li><li><b>2</b>通じるかを0〜100点で採点。言えていない単語には赤い波線が付きます</li></ol>`, },
+    text:`<ol><li><b>1</b>「発音チェック」でマイクを押して、英語で言ってみます</li><li><b>2</b>通じるかを0〜100点で採点。言えていない単語には赤い波線が付きます</li></ol>`,
+    points:[{ side:"r", ax:0.9 }, { side:"l", ax:0.08, ay:0.3 }] },
   { img:"add", title:"マイ単語帳に追加",
-    text:`<ol><li><b>1</b>お客さまに言われた言葉やお店の言葉は、日本語を入れるだけ</li><li><b>2</b>英語の候補が出るので、選んで「追加する」を押せばOK</li></ol>`, },
+    text:`<ol><li><b>1</b>お客さまに言われた言葉やお店の言葉は、日本語を入れるだけ</li><li><b>2</b>英語の候補が出るので、選んで「追加する」を押せばOK</li></ol>`,
+    points:[{ side:"l", ax:0.06 }, { side:"l", ax:0.06, ay:0.4 }] },
   { art:"home", title:"ホーム画面に追加しよう",
     text:`<p>iPhone は Safari の共有ボタンから<br>「ホーム画面に追加」を選ぶと、<br>アプリのようにすぐ開けます。</p>` }
 ];
-function showTutorial(){
+let tutorialData = { version:"", marks:{} };
+async function showTutorial(){
+  if(document.querySelector(".tut-overlay")) return;
+  try{
+    const res = await fetch("tutorial/marks.json", { cache:"no-cache" });
+    if(res.ok) tutorialData = await res.json();
+  }catch(e){} // 取れなくても、矢印なしで説明は出す
   if(document.querySelector(".tut-overlay")) return;
   stopSpeech();
   let i = 0;
@@ -1780,6 +1788,7 @@ function showTutorial(){
   document.body.appendChild(ov);
   document.body.classList.add("sheet-open");
   const close = () => {
+    window.removeEventListener("resize", onResize);
     ov.remove();
     if(!document.querySelector(".sheet-overlay")) document.body.classList.remove("sheet-open");
     if(!state.tutorialSeen){ state.tutorialSeen = true; saveState(); }
@@ -1788,12 +1797,10 @@ function showTutorial(){
   const draw = () => {
     const t = TUTORIAL[i];
     const last = i === TUTORIAL.length - 1;
-    const marks = (t.img && window.TUTORIAL_MARKS && window.TUTORIAL_MARKS[t.img] || []).filter(Boolean);
-    const numPos = t.numPos || [];
     const stage = t.img
-      ? `<div class="tut-phone"><img src="tutorial/${t.img}.jpg" alt="${esc(t.title)}の画面">${marks.map((m, k) =>
-          `<div class="tut-mark" style="left:${m[0]}%; top:${m[1]}%; width:${m[2]}%; height:${m[3]}%;">${marks.length > 1 ? `<span class="tut-num${numPos[k] ? " " + numPos[k] : ""}">${k + 1}</span>` : ""}</div>`).join("")}</div>`
-      : `<div class="tut-art">
+      ? `<div class="tut-phone"><img src="tutorial/${t.img}.jpg?v=${encodeURIComponent(tutorialData.version || "")}" alt="${esc(t.title)}の画面"></div>
+         <svg class="tut-arrows" aria-hidden="true"></svg>`
+      : `<div class="tut-art" style="height:100%;">
           <div class="tut-art-icon"><img src="icons/icon-192.png" alt="" width="96" height="96" style="display:block;"></div>
           <div class="tut-art-steps"><span>${ICON.share(18)}共有</span>→<span>ホーム画面に追加</span></div>
         </div>`;
@@ -1813,10 +1820,61 @@ function showTutorial(){
     const prev = ov.querySelector("#tutPrev");
     if(prev) prev.onclick = () => { i--; draw(); };
     ov.querySelector("#tutNext").onclick = () => { if(last) close(); else { i++; draw(); } };
+    layout();
     // 次の写真を先に読み込んでおく
     const next = TUTORIAL[i + 1];
-    if(next && next.img) new Image().src = `tutorial/${next.img}.jpg`;
+    if(next && next.img) new Image().src = `tutorial/${next.img}.jpg?v=${encodeURIComponent(tutorialData.version || "")}`;
   };
+  // 写真の大きさを決め、写真の外に番号、そこから指す場所へ矢印を引く
+  const layout = () => {
+    const t = TUTORIAL[i];
+    const stage = ov.querySelector(".tut-stage");
+    const phone = ov.querySelector(".tut-phone");
+    const svg = ov.querySelector(".tut-arrows");
+    if(!phone || !stage) return;
+    const W = stage.clientWidth, H = stage.clientHeight;
+    const h = Math.max(160, Math.min(H, 470, (W - 2 * 56) * 812 / 375));
+    const w = h * 375 / 812;
+    const left = (W - w) / 2, top = (H - h) / 2;
+    Object.assign(phone.style, { left:left + "px", top:top + "px", width:w + "px", height:h + "px" });
+    stage.querySelectorAll(".tut-badge").forEach(b => b.remove());
+    const marks = (tutorialData.marks[t.img] || []);
+    const pts = (t.points || []).map((p, k) => {
+      const m = marks[k];
+      if(!m) return null;
+      const ax = p.ax ?? 0.5, ay = p.ay ?? 0.5;
+      const tx = left + (m[0] + m[2] * ax) / 100 * w;
+      const ty = top + (m[1] + m[3] * ay) / 100 * h;
+      const bx = p.side === "r" ? Math.min(W - 16, left + w + 30) : Math.max(16, left - 30);
+      return { k, tx, ty, bx, by:ty, side:p.side };
+    }).filter(Boolean);
+    // 同じ側の番号どうしが重ならないよう、縦に少しずらす
+    ["l", "r"].forEach(side => {
+      const list = pts.filter(p => (p.side === "r") === (side === "r")).sort((a, b) => a.by - b.by);
+      for(let k = 1; k < list.length; k++) if(list[k].by - list[k - 1].by < 34) list[k].by = list[k - 1].by + 34;
+    });
+    svg.setAttribute("width", W);
+    svg.setAttribute("height", H);
+    svg.innerHTML = `<defs><marker id="tutHead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#FF8A1F"/></marker></defs>` +
+      pts.map(p => {
+        const dir = p.tx > p.bx ? 1 : -1;
+        const sx = p.bx + dir * 15, sy = p.by;
+        const len = Math.hypot(p.tx - sx, p.ty - sy) || 1;
+        const ex = p.tx - (p.tx - sx) / len * 9, ey = p.ty - (p.ty - sy) / len * 9; // 指す場所の丸の手前で止める
+        return `<line x1="${sx}" y1="${sy}" x2="${ex}" y2="${ey}" stroke="#FF8A1F" stroke-width="3" stroke-linecap="round" marker-end="url(#tutHead)"/>
+          <circle class="tut-target" cx="${p.tx}" cy="${p.ty}" r="7"/>`;
+      }).join("");
+    pts.forEach(p => {
+      const b = document.createElement("span");
+      b.className = "tut-badge";
+      b.style.left = p.bx + "px";
+      b.style.top = p.by + "px";
+      b.textContent = pts.length > 1 ? String(p.k + 1) : "";
+      stage.appendChild(b);
+    });
+  };
+  const onResize = () => layout();
+  window.addEventListener("resize", onResize);
   // 左右のスワイプでも進む・戻る
   let sx = null, sy = null;
   ov.addEventListener("touchstart", e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive:true });

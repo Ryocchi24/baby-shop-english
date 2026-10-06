@@ -39,6 +39,10 @@ f.onload = () => {
   const W = f.contentWindow;
   // フォントの読み込みを待ってから画面を作る
   (W.document.fonts ? W.document.fonts.ready : Promise.resolve()).then(() => {
+    // 動き(シートが下から出る等)を止める。途中の位置で撮ったり測ったりすると、写真と矢印がずれるため
+    const still = W.document.createElement("style");
+    still.textContent = "*,*::before,*::after{animation:none!important;transition:none!important;}";
+    W.document.head.appendChild(still);
     W.eval(SCENES[scene].run);
     setTimeout(() => {
       if(params.get("rects")){
