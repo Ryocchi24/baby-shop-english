@@ -72,8 +72,14 @@
     font-family:var(--font-ui); font-weight:500; font-size:17px; line-height:1.6;
     -webkit-font-smoothing:antialiased; touch-action:manipulation;
     -webkit-tap-highlight-color:transparent;
+    /* 長押しで文字やアイコンが選択されたり、メニューが出たりしないようにする(ボタンを長押ししたときに邪魔になるため)。
+       コピーできるのは、一覧の英単語・例文と入力欄だけ(辞書で調べたい人向け) */
+    -webkit-user-select:none; user-select:none; -webkit-touch-callout:none;
   }
   body.sheet-open{ overflow:hidden; }
+  input, textarea, .item-en [lang="en"], .item-ex-en{ -webkit-user-select:text; user-select:text; -webkit-touch-callout:default; }
+  img, svg{ -webkit-user-drag:none; }
+  button svg, button img{ pointer-events:none; }
   button{ font-family:inherit; color:inherit; }
   .app{ max-width:720px; margin:0 auto; padding:calc(20px + env(safe-area-inset-top)) 16px calc(28px + env(safe-area-inset-bottom)); }
   h1{ font-size:21px; font-weight:800; margin:0 0 4px; }
@@ -169,7 +175,7 @@
     background:var(--surface); border:2px solid var(--hair); border-radius:16px;
   }
   .item-body{ flex:1; min-width:0; }
-  .item-en{ font-family:var(--font-en); font-size:18px; font-weight:700; line-height:1.35; overflow-wrap:anywhere; -webkit-user-select:text; user-select:text; }
+  .item-en{ font-family:var(--font-en); font-size:18px; font-weight:700; line-height:1.35; overflow-wrap:anywhere; }
   .item-ja{ font-size:15px; color:var(--sub); overflow-wrap:anywhere; margin-top:2px; }
   .item-ex{ margin-top:8px; padding:8px 10px; border-radius:10px; background:var(--track); font-size:14px; line-height:1.5; }
   .item-ex-en{ font-family:var(--font-en); font-weight:600; overflow-wrap:anywhere; }
@@ -333,6 +339,7 @@
   .mic-btn.listening{ background:var(--danger); border-bottom-color:rgba(0,0,0,.3); animation:micPulse 1.2s ease-in-out infinite; }
   @keyframes micPulse{ 0%,100%{ box-shadow:0 0 0 0 rgba(201,53,47,.45); } 50%{ box-shadow:0 0 0 16px rgba(201,53,47,0); } }
   .mic-label{ margin:10px 0 0; font-size:14px; font-weight:800; color:var(--sub); text-align:center; }
+  .mic-label small{ font-size:12px; font-weight:700; }
   .mic-interim{ margin:4px 0 0; min-height:22px; font-family:var(--font-en); font-size:15px; text-align:center; overflow-wrap:anywhere; }
   .pron-result{ border-radius:20px; padding:14px 16px; margin-bottom:12px; text-align:center; animation:fadeIn .2s ease-out; }
   .pron-result.great, .pron-result.good{ background:var(--accent-light); color:var(--accent); }
@@ -1427,13 +1434,21 @@ function pronRate(items){
   items.forEach(w => { const s = state.pron[w.id]; if(s){ n += s.n; ok += s.ok; } });
   return n ? Math.round(100 * ok / n) : null;
 }
-function startPron(entries, title, back, tone){
+// LINE・Instagram などのアプリの中で開いたブラウザでは、マイクや音声の聞き取りが使えないことが多い
+const IN_APP_BROWSER = /\bLine\/|Instagram|FBAN|FBAV|MicroMessenger/i.test(navigator.userAgent);
+function startPron(entries, title, back, tone, force){
   if(entries.length === 0) return;
-  if(!SpeechRec){
-    openSheet(`${sheetHead("発音チェック")}
-      <p style="margin:0 0 8px;">このブラウザは音声の聞き取りに対応していません。</p>
-      <p class="sub" style="font-size:14px;">iPhone は <b>Safari</b>、パソコンや Android は <b>Google Chrome</b> で開くと使えます。</p>
+  if(!SpeechRec || (IN_APP_BROWSER && !force)){
+    const { close, $ } = openSheet(`${sheetHead("発音チェック")}
+      ${IN_APP_BROWSER
+        ? `<p style="margin:0 0 8px;">LINE などのアプリの中で開いた画面では、マイクがうまく使えないことがあります。</p>
+           <p class="sub" style="font-size:14px;">画面の右上か右下のメニューから「<b>ブラウザで開く</b>」（iPhone は Safari）を選んで開き直してください。</p>`
+        : `<p style="margin:0 0 8px;">このブラウザは音声の聞き取りに対応していません。</p>
+           <p class="sub" style="font-size:14px;">iPhone は <b>Safari</b>、パソコンや Android は <b>Google Chrome</b> で開くと使えます。</p>`}
+      ${SpeechRec ? `<button class="btn secondary" id="btnPronAnyway">このまま試す</button>` : ""}
       <button class="btn" data-close>閉じる</button>`);
+    const anyway = $("#btnPronAnyway");
+    if(anyway) anyway.onclick = () => { close(); startPron(entries, title, back, tone, true); };
     return;
   }
   // 点数の低いもの・まだ試していないものから出す
@@ -1473,7 +1488,7 @@ function renderPron(){
     </div>
     <div class="pron-mic-area">
       <button class="mic-btn" id="micBtn" aria-label="マイクで話す">${ICON.mic(36)}</button>
-      <p class="mic-label" id="micLabel">マイクを押して、英語で言ってみよう</p>
+      <p class="mic-label" id="micLabel">マイクをタップしてから、英語で言ってみよう<br><small>（長押しは不要。話し終わると自動で止まります）</small></p>
       <p class="mic-interim" id="micInterim" lang="en"></p>
     </div>
     <div id="pronResult"></div>
@@ -1507,6 +1522,7 @@ function renderPron(){
     </div>`;
   };
   if(pron.results[w.id]) showResult(pron.results[w.id]);
+  micBtn.addEventListener("contextmenu", e => e.preventDefault());
   micBtn.onclick = () => {
     if(currentRec){ try{ currentRec.stop(); }catch(e){} return; } // 2回目のタップで話し終わり
     stopSpeech(); // お手本の音を拾わないように止める
@@ -1518,7 +1534,7 @@ function renderPron(){
     let finals = [], alts = [], interim = "", err = null, timer = null;
     rec.onstart = () => {
       micBtn.classList.add("listening");
-      label.textContent = "聞いています… 言い終わったら少し待つか、もう一度押してください";
+      label.textContent = "聞いています… 話し終わると自動で止まります";
       interimEl.textContent = "";
     };
     rec.onresult = e => {
@@ -1540,10 +1556,11 @@ function renderPron(){
       micBtn.classList.remove("listening");
       const heardList = [finals.join(" "), ...alts, interim].map(x => x.trim()).filter(Boolean);
       if(heardList.length === 0){
-        label.textContent = err === "not-allowed" || err === "service-not-allowed" ? "マイクが使えません。ブラウザの設定でマイクを許可してください"
+        label.textContent = err === "not-allowed" ? "マイクの使用が許可されていません。ブラウザの設定で、このページのマイクを「許可」にしてください"
+          : err === "service-not-allowed" ? "音声の聞き取りが使えません。iPhoneは「設定 → 一般 → キーボード → 音声入力」をオンにしてください"
           : err === "network" ? "通信できませんでした。インターネットにつながっているか確認してください"
           : err === "audio-capture" ? "マイクが見つかりませんでした"
-          : "聞き取れませんでした。もう一度マイクを押して、はっきり話してください";
+          : "聞き取れませんでした。もう一度マイクをタップして、はっきり話してください";
         return;
       }
       const r = bestPronScore(w.en, heardList);
@@ -1552,7 +1569,7 @@ function renderPron(){
       pron.results[w.id] = r;
       showResult(r);
       interimEl.textContent = "";
-      label.textContent = r.score >= PRON_PASS ? "もう一度言うときはマイクを押してください" : "マイクを押して、もう一度どうぞ";
+      label.textContent = r.score >= PRON_PASS ? "もう一度言うときはマイクをタップ" : "マイクをタップして、もう一度どうぞ";
       nextBtn.innerHTML = `${nextLabel()}${ICON.right(18)}`;
     };
     currentRec = rec;
@@ -1584,7 +1601,7 @@ function renderPronEnd(){
       ${tried.length
         ? `<h1>正答率 ${Math.round(100 * passed.length / tried.length)}%</h1>
            <p class="sub">${tried.length}語中 ${passed.length}語が${PRON_PASS}点以上（平均 ${avg}点）</p>`
-        : `<h1>おつかれさまでした</h1><p class="sub">マイクを押して話すと、点数が出ます</p>`}
+        : `<h1>おつかれさまでした</h1><p class="sub">マイクをタップして話すと、点数が出ます</p>`}
     </div>
     ${notYet.length > 0 && notYet.length < pron.queue.length
       ? `<button class="btn btn-mic" id="btnPronRetry">${PRON_PASS}点未満の${notYet.length}語をもう一度</button>
@@ -1753,7 +1770,7 @@ const TUTORIAL = [
     text:`<p>一覧の下の「カードで覚える」から始めます。<br>カードをタップすると裏返り、<br>左右にスワイプすると次のカードへ進みます。</p>`,
     points:[{ side:"l", ax:0.04, ay:0.5 }] },
   { img:"pron", title:"発音チェック",
-    text:`<ol><li><b>1</b>「発音チェック」でマイクを押して、英語で言ってみます</li><li><b>2</b>通じるかを0〜100点で採点。言えていない単語には赤い波線が付きます</li></ol>`,
+    text:`<ol><li><b>1</b>「発音チェック」でマイクをタップして、英語で言ってみます（長押しは不要）</li><li><b>2</b>通じるかを0〜100点で採点。言えていない単語には赤い波線が付きます</li></ol>`,
     points:[{ side:"r", ax:0.9 }, { side:"l", ax:0.08, ay:0.3 }] },
   { img:"add", title:"マイ単語帳に追加",
     text:`<ol><li><b>1</b>お客さまに言われた言葉やお店の言葉は、日本語を入れるだけ</li><li><b>2</b>英語の候補が出るので、選んで「追加する」を押せばOK</li></ol>`,
