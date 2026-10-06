@@ -278,11 +278,6 @@
   .flash-in-left{ animation:flashInLeft .22s ease-out; }
   @keyframes flashInRight{ from{ transform:translateX(40%); opacity:0; } to{ transform:none; opacity:1; } }
   @keyframes flashInLeft{ from{ transform:translateX(-40%); opacity:0; } to{ transform:none; opacity:1; } }
-  .flash-learn-row{ display:flex; justify-content:center; margin:0 0 4px; }
-  .learn-chip{ display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:999px; border:2px solid var(--hair); background:var(--surface); color:var(--sub); font-size:14px; font-weight:800; cursor:pointer; }
-  .learn-chip .dot{ width:20px; height:20px; border-radius:50%; border:2px solid var(--hair); display:flex; align-items:center; justify-content:center; color:transparent; }
-  .learn-chip.on{ border-color:var(--accent); color:var(--accent); background:var(--accent-light); }
-  .learn-chip.on .dot{ background:var(--accent); border-color:var(--accent); color:var(--on-accent); }
   .flash-hint{ text-align:center; font-size:12px; font-weight:700; color:var(--sub); margin:6px 0 10px; }
   .flash-nav{ display:flex; gap:10px; }
   .flash-nav .btn{ margin-top:0; display:flex; align-items:center; justify-content:center; gap:4px; }
@@ -1225,9 +1220,6 @@ function renderFlashcard(){
         </div>
       </div>
     </div>
-    <div class="flash-learn-row">
-      <button class="learn-chip${isLearned(w) ? " on" : ""}" id="flashLearn" aria-pressed="${isLearned(w)}"><span class="dot">${ICON.check(12)}</span>覚えた</button>
-    </div>
     <p class="flash-hint">左右にスワイプでもめくれます</p>
     <div class="flash-nav">
       <button class="btn secondary" id="btnFlashPrev" ${isFirst ? "disabled" : ""}>${ICON.left(18)}前へ</button>
@@ -1298,8 +1290,6 @@ function renderFlashcard(){
       renderFlashcard();
     });
   });
-  const learnBtn = document.getElementById("flashLearn");
-  learnBtn.onclick = () => { const on = toggleLearned(w); learnBtn.classList.toggle("on", on); learnBtn.setAttribute("aria-pressed", on); };
   document.getElementById("btnFlashPause").onclick = finishFlash;
   document.getElementById("btnFlashPrev").onclick = () => goFlash(-1);
   document.getElementById("btnFlashNext").onclick = () => goFlash(1);
@@ -1760,8 +1750,8 @@ const TUTORIAL = [
     text:`<ol><li><b>1</b>青いボタンで、お手本の発音を聞けます</li><li><b>2</b>♡を押すと、マイ単語帳に入ります</li><li><b>3</b>単語をタップすると、例文が開きます</li></ol>`,
     points:[{ side:"r" }, { side:"r" }, { side:"l", ax:0.12 }] },
   { img:"flash", title:"カードで覚える",
-    text:`<ol><li><b>1</b>一覧の下の「カードで覚える」から始めます。カードをタップすると裏返ります</li><li><b>2</b>覚えたら「覚えた」を押しておきましょう</li></ol>`,
-    points:[{ side:"l", ax:0.08, ay:0.35 }, { side:"r", ax:0.92 }] },
+    text:`<p>一覧の下の「カードで覚える」から始めます。<br>カードをタップすると裏返り、<br>左右にスワイプすると次のカードへ進みます。</p>`,
+    points:[{ side:"l", ax:0.04, ay:0.5 }] },
   { img:"pron", title:"発音チェック",
     text:`<ol><li><b>1</b>「発音チェック」でマイクを押して、英語で言ってみます</li><li><b>2</b>通じるかを0〜100点で採点。言えていない単語には赤い波線が付きます</li></ol>`,
     points:[{ side:"r", ax:0.9 }, { side:"l", ax:0.08, ay:0.3 }] },

@@ -24,6 +24,7 @@ run_chrome(){ # $1=出来上がりを待つファイル $2=中に含まれるべ
 }
 printf '{\n "version": "%s",\n "marks": {\n' "$(date +%Y%m%d%H%M%S)" > "$TMP/marks.json"
 sep=""
+failed=0
 for s in home cat flash pron add my; do
   run_chrome "$TMP/$s.png" "" "${FLAGS[@]}" --force-device-scale-factor=2 --screenshot="$TMP/$s.png" "$BASE?s=$s"
   run_chrome "$TMP/stdout" "</html>" "${FLAGS[@]}" --dump-dom "$BASE?s=$s&rects=1"
@@ -37,9 +38,11 @@ for s in home cat flash pron add my; do
     echo "撮影: $s $rects"
   else
     echo "失敗: $s"
+    failed=1
   fi
 done
 printf '\n }\n}\n' >> "$TMP/marks.json"
-cp "$TMP/marks.json" tutorial/marks.json
+# 1つでも失敗したら位置データは書き換えない(欠けた位置データと写真が混ざらないように)
+if [ $failed -eq 0 ]; then cp "$TMP/marks.json" tutorial/marks.json; else echo "失敗した画面があるので tutorial/marks.json は更新していません。もう一度実行してください"; fi
 rm -f tutorial/marks.js
 rm -rf "$TMP"

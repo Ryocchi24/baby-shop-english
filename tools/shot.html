@@ -26,7 +26,7 @@ const SCENES = {
   cat: { run: "currentCatId='stroller'; go('cat'); document.querySelectorAll('#catRows [data-toggle]')[1].click();",
     marks: ["#catRows .item-row:nth-child(2) [data-act=speak]", "#catRows .item-row:nth-child(2) [data-act=fav]", "#catRows .item-row:nth-child(2) .item-ex"] },
   flash: { run: "currentCatId='stroller'; startFlash(itemsOfCat('stroller'), 'ベビーカー', {view:'cat', catId:'stroller'}, 'accent'); document.getElementById('btnFlashStart').click(); flash.queue = [BUILTIN_MAP.get('stroller-18'), ...flash.queue.filter(w => w.id !== 'stroller-18')]; render();",
-    marks: ["#flashInner", "#flashLearn"] },
+    marks: ["#flashInner"] },
   pron: { run: "currentCatId='phrase'; startPron(itemsOfCat('phrase'), '接客のひと言', {view:'cat', catId:'phrase'}, 'accent'); const w = BUILTIN_MAP.get('phrase-7'); pron.queue = [w, ...pron.queue.filter(x => x !== w)]; pron.idx = 0; const r = scorePron(w.en, 'would you like to try'); pron.results[w.id] = r; pron.scores[w.id] = r.score; render(); document.getElementById('micLabel').textContent = 'マイクを押して、もう一度どうぞ';",
     marks: ["#micBtn", ".pron-result"] },
   add: { run: "translateCache.set('機内持ち込み', ['carry-on']); go('my'); showAddWordSheet(null, () => {}); const j = document.getElementById('inJa'); j.value = '機内持ち込み'; j.dispatchEvent(new InputEvent('input')); document.querySelectorAll('#suggestBox .suggest-item')[1].click(); document.activeElement && document.activeElement.blur();",
