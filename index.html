@@ -460,6 +460,7 @@ function defaultState(){
     seenAt: {},         // id -> 最後にフラッシュカードで見た順番。長く見ていないものから出すのに使う
     seenCount: 0,
     flashFront: "en",   // フラッシュカードの表の面: "en" | "ja"
+    flashSkipLearned: true, // マイ単語帳のフラッシュカードで「覚えた」単語を出さないか(始める前に選べる)
     speechRate: "normal", // "normal" | "slow"
     autoSpeak: true,    // フラッシュカードで英語が見えたら読み上げる
     pron: {},           // 発音チェックの記録: id -> {n:回数, ok:80点以上の回数, best:最高点}
@@ -790,7 +791,7 @@ function renderHome(){
   document.getElementById("btnHelp").onclick = () => showTutorial();
   document.getElementById("btnOpenMy").onclick = () => go("my");
   document.getElementById("btnQuickAdd").onclick = () => showAddWordSheet(null, () => renderHome());
-  document.getElementById("btnMyFlash").onclick = () => { myFilter = "all"; startFlash(getMyEntries("all"), "マイ単語帳", { view:"home" }, "indiv", { skipLearned:true }); };
+  document.getElementById("btnMyFlash").onclick = () => { myFilter = "all"; startFlash(getMyEntries("all"), "マイ単語帳", { view:"home" }, "indiv", { learnedOption:true }); };
   const input = document.getElementById("homeSearch");
   input.oninput = () => { homeQuery = input.value; renderHomeBody(); };
   input.addEventListener("keydown", e => { if(e.key === "Enter" && !e.isComposing) input.blur(); });
@@ -893,7 +894,7 @@ function renderMy(){
       </div>
       <div class="search-box" style="margin-bottom:12px;">${ICON.search(18)}<input type="search" id="mySearch" class="text-input" placeholder="単語・意味で検索" value="${esc(myQuery)}" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" aria-label="マイ単語帳を検索"></div>`}
     ${entries.length === 0 ? `<div class="empty-state">${emptyMessages[myFilter]}</div>` : `
-      ${state.learned.length === 0 ? `<p class="hint">覚えたら左の「覚えた」にチェック。フラッシュカードに出なくなります</p>` : `<p class="hint">覚えた ${learnedCount} / ${entries.length}（覚えた単語はフラッシュカードに出ません）</p>`}
+      ${state.learned.length === 0 ? `<p class="hint">覚えたら左の「覚えた」にチェック。フラッシュカードで出さないようにできます</p>` : `<p class="hint">覚えた ${learnedCount} / ${entries.length}</p>`}
       <div id="myRows">${entries.map(w => itemRow(w, "my", { showSource: myFilter === "all" })).join("")}</div>
       <div class="empty-state" id="myNoHit" style="display:none; padding:24px 16px;">一致する単語はありません。</div>
       <div class="footer-spacer"></div>
@@ -922,7 +923,7 @@ function renderMy(){
     search.oninput = () => { myQuery = search.value; filterRows(rows, myQuery, noHit); };
     search.addEventListener("keydown", e => { if(e.key === "Enter" && !e.isComposing) search.blur(); });
     filterRows(rows, myQuery, noHit);
-    document.getElementById("btnMyFlash").onclick = () => startFlash(entries, `マイ単語帳（${labels[myFilter]}）`, { view:"my" }, "indiv", { skipLearned:true });
+    document.getElementById("btnMyFlash").onclick = () => startFlash(entries, `マイ単語帳（${labels[myFilter]}）`, { view:"my" }, "indiv", { learnedOption:true });
     document.getElementById("btnMyPron").onclick = () => startPron(entries, `マイ単語帳（${labels[myFilter]}）`, { view:"my" }, "indiv");
   }
 }
@@ -1180,37 +1181,46 @@ function orderForFlash(entries){
   return shuffle(entries.slice()).sort((a, b) => (state.seenAt[a.id] || 0) - (state.seenAt[b.id] || 0));
 }
 // 始める前に、出題のしかた(英語→日本語 か 日本語→英語)を選ぶ(選んだ内容は次回も使う)。
-// マイ単語帳から始めるときは(skipLearned)、一覧で「覚えた」にした単語は出さない
+// マイ単語帳から始めるときは(learnedOption)、一覧で「覚えた」にした単語を出すかどうかも選べる(最初は「出さない」)
 function startFlash(entries, title, back, tone, opts){
   if(entries.length === 0) return;
-  const all = entries.length;
-  if(opts && opts.skipLearned) entries = entries.filter(w => !isLearned(w));
-  const skipped = all - entries.length;
+  const learnedCount = opts && opts.learnedOption ? entries.filter(isLearned).length : 0;
+  let skip = learnedCount > 0 && state.flashSkipLearned !== false;
   let front = state.flashFront === "ja" ? "ja" : "en";
-  if(entries.length === 0){
-    openSheet(`${sheetHead("フラッシュカード")}
-      <p style="margin:0 0 6px;">すべて「覚えた」になっています 🎉</p>
-      <p class="sub" style="font-size:14px;">もう一度めくりたい単語は、マイ単語帳の一覧で左の「覚えた」のチェックを外してください。</p>
-      <button class="btn btn-indiv" data-close>閉じる</button>`);
-    return;
-  }
   const { close, $ } = openSheet(`
     ${sheetHead("フラッシュカード")}
-    <p class="sub sheet-lead">${esc(title)}${skipped ? `<br><small>「覚えた」にした${skipped}語は出しません</small>` : ""}</p>
+    <p class="sub sheet-lead">${esc(title)}</p>
     <div class="opt-label">出題のしかた</div>
     <div class="segmented ${tone === "indiv" ? "" : "accent"}" id="flashFrontSeg">
       <button data-front="en">英語 → 日本語</button>
       <button data-front="ja">日本語 → 英語</button>
     </div>
-    <button class="btn ${tone === "indiv" ? "btn-indiv" : ""}" id="btnFlashStart">${entries.length}枚をめくる</button>
+    ${learnedCount ? `<div class="opt-row">
+      <span><b>「覚えた」単語は出さない</b><small>覚えた ${learnedCount}語 / ${entries.length}語</small></span>
+      <label class="switch"><input type="checkbox" id="flashSkip" ${skip ? "checked" : ""} aria-label="「覚えた」単語は出さない"><span class="switch-slider"></span></label>
+    </div>
+    <p class="sub" id="flashAllLearned" style="text-align:center; font-size:14px; margin:0 0 4px; display:none;">すべて「覚えた」になっています 🎉<br>スイッチを切ると、もう一度めくれます</p>` : ""}
+    <button class="btn ${tone === "indiv" ? "btn-indiv" : ""}" id="btnFlashStart"></button>
   `);
-  const update = () => document.querySelectorAll("#flashFrontSeg [data-front]").forEach(b => b.classList.toggle("active", b.dataset.front === front));
+  const queue = () => skip ? entries.filter(w => !isLearned(w)) : entries;
+  const update = () => {
+    document.querySelectorAll("#flashFrontSeg [data-front]").forEach(b => b.classList.toggle("active", b.dataset.front === front));
+    const n = queue().length;
+    const startBtn = $("#btnFlashStart");
+    startBtn.textContent = `${n}枚をめくる`;
+    startBtn.disabled = n === 0;
+    const allLearned = $("#flashAllLearned");
+    if(allLearned) allLearned.style.display = n === 0 ? "" : "none";
+  };
   document.querySelectorAll("#flashFrontSeg [data-front]").forEach(b => b.onclick = () => { front = b.dataset.front; update(); });
+  const skipInput = $("#flashSkip");
+  if(skipInput) skipInput.onchange = e => { skip = e.target.checked; update(); };
   $("#btnFlashStart").onclick = () => {
     state.flashFront = front;
+    if(learnedCount) state.flashSkipLearned = skip;
     saveState();
     close();
-    flash = { queue:orderForFlash(entries), idx:0, front, title, back, tone, slideFrom:null, notedIdx:null, spokenIdx:null, keepFlip:false };
+    flash = { queue:orderForFlash(queue()), idx:0, front, title, back, tone, slideFrom:null, notedIdx:null, spokenIdx:null, keepFlip:false };
     go("flash");
   };
   update();
