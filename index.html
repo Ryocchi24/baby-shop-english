@@ -271,6 +271,11 @@
   .switch input:disabled + .switch-slider{ opacity:.45; cursor:default; }
   .switch input:focus-visible + .switch-slider{ outline:2px solid var(--accent); outline-offset:2px; }
   .settings-group{ margin-bottom:18px; }
+  .backup-steps{ margin:0 0 10px; padding-left:1.3em; font-size:13.5px; line-height:1.6; }
+  .backup-steps li{ margin-bottom:3px; }
+  .backup-raw{ margin-top:12px; font-size:13px; color:var(--sub); font-weight:700; }
+  .backup-raw summary{ cursor:pointer; }
+  .backup-raw textarea{ margin-top:8px; font-size:11px; font-family:ui-monospace, Menlo, monospace; }
   .settings-group .btn{ margin-top:8px; }
 
   /* ----- フラッシュカード ----- */
@@ -1030,8 +1035,8 @@ function showMyMenu(anchor){
   menu.className = "pop-menu";
   menu.setAttribute("role", "menu");
   menu.innerHTML = `
-    <button type="button" role="menuitem" data-act="export">バックアップを書き出す</button>
-    <button type="button" role="menuitem" data-act="import">バックアップから復元する</button>`;
+    <button type="button" role="menuitem" data-act="export">バックアップを書き出す（機種変更の前に）</button>
+    <button type="button" role="menuitem" data-act="import">バックアップから復元する（新しいスマホで）</button>`;
   const r = anchor.getBoundingClientRect();
   menu.style.top = (r.bottom + window.scrollY + 4) + "px";
   menu.style.right = Math.max(8, document.documentElement.clientWidth - r.right) + "px";
@@ -1934,10 +1939,13 @@ function showSettingsSheet(){
       <button class="btn secondary" id="btnShowTutorial" style="display:flex; align-items:center; justify-content:center; gap:6px;">${ICON.help(18)}使い方を見る</button>
     </div>
     <div class="settings-group">
-      <div class="opt-label">データ</div>
-      <p class="sub" style="font-size:13px;">マイ単語帳と「覚えた」は、このブラウザの中にだけ保存されます。機種変更やブラウザのデータ削除の前に、バックアップを書き出しておいてください。</p>
-      <button class="btn ghost" id="btnExport">バックアップを書き出す</button>
-      <button class="btn ghost" id="btnImport">バックアップから復元する</button>
+      <div class="opt-label">機種変更・バックアップ</div>
+      <p class="sub" style="font-size:13px;">マイ単語帳・「覚えた」・発音の記録は、このスマホのブラウザの中にだけ保存されています。機種変更の前に、古いスマホで「書き出す」をして、新しいスマホで「復元する」をしてください。</p>
+      <button class="btn ghost" id="btnExport">① 古いスマホで：書き出す</button>
+      <button class="btn ghost" id="btnImport">② 新しいスマホで：復元する</button>
+    </div>
+    <div class="settings-group">
+      <div class="opt-label">記録のリセット</div>
       <button class="btn ghost" id="btnResetLearned">「覚えた」をすべて外す</button>
       <button class="btn ghost" id="btnResetPron">発音チェックの記録を消す</button>
     </div>
@@ -1979,18 +1987,36 @@ function backupPayload(){
 }
 function showExportSheet(){
   const json = JSON.stringify(backupPayload());
+  const canShare = typeof navigator.share === "function";
   const { $ } = openSheet(`
     ${sheetHead("バックアップを書き出す")}
-    <p class="sub" style="font-size:14px; margin-bottom:10px;">下のテキストをコピーして、メモアプリや自分宛てのメッセージに保存してください。自作 ${state.customWords.length}語・お気に入り ${state.favorites.length}件・覚えた ${state.learned.length}件 が入っています。</p>
-    <textarea class="text-input" id="exportText" rows="5" readonly style="font-size:12px; font-family:ui-monospace, Menlo, monospace;"></textarea>
-    <button class="btn btn-indiv" id="btnCopy">コピーする</button>
+    <p class="sub" style="font-size:14px; margin-bottom:8px;">自作 ${state.customWords.length}語・お気に入り ${state.favorites.length}件・覚えた ${state.learned.length}件 が入っています。</p>
+    <ol class="backup-steps">
+      <li>下のボタンで、バックアップを<b>自分あてに送る</b>（LINE の Keep メモ、自分あてのメール、メモアプリなど）</li>
+      <li>新しいスマホで、送ったバックアップの文字を<b>コピー</b>する</li>
+      <li>新しいスマホの Safari でこのアプリを開き、設定 →「② 新しいスマホで：復元する」</li>
+    </ol>
+    ${canShare ? `<button class="btn btn-indiv" id="btnShare">LINE・メールなどで送る</button>` : ""}
+    <button class="btn ${canShare ? "secondary" : "btn-indiv"}" id="btnCopy">文字をコピーする</button>
     <button class="btn ghost" id="btnDownload">ファイルで保存する</button>
+    <details class="backup-raw"><summary>バックアップの中身を見る</summary>
+      <textarea class="text-input" id="exportText" rows="4" readonly></textarea>
+    </details>
   `);
   const ta = $("#exportText");
   ta.value = json;
+  const share = $("#btnShare");
+  if(share) share.onclick = async () => {
+    try{ await navigator.share({ title:"ベビー接客えいご バックアップ", text:json }); }
+    catch(e){ if(e && e.name !== "AbortError") toast("送れませんでした。「文字をコピーする」を使ってください"); }
+  };
   $("#btnCopy").onclick = async () => {
-    try{ await navigator.clipboard.writeText(json); toast("コピーしました"); }
-    catch(e){ ta.focus(); ta.select(); toast("テキストを選択しました。コピーしてください"); }
+    try{ await navigator.clipboard.writeText(json); toast("コピーしました。LINE やメモに貼り付けて送ってください"); }
+    catch(e){
+      $(".backup-raw").open = true;
+      ta.focus(); ta.select();
+      toast("文字を選択しました。コピーしてください");
+    }
   };
   $("#btnDownload").onclick = () => {
     const d = new Date();
@@ -2007,11 +2033,28 @@ function showExportSheet(){
 function showImportSheet(){
   const { close, $ } = openSheet(`
     ${sheetHead("バックアップから復元")}
-    <p class="sub" style="font-size:14px; margin-bottom:10px;">書き出したテキストを貼り付けるか、保存したファイルを選んでください。今のマイ単語帳と「覚えた」は上書きされます。</p>
-    <textarea class="text-input" id="importText" rows="5" placeholder="バックアップのテキストを貼り付け" style="font-size:12px; font-family:ui-monospace, Menlo, monospace;"></textarea>
-    <label class="btn ghost" style="display:block; cursor:pointer;">ファイルを選ぶ<input type="file" id="importFile" accept=".json,.txt,application/json,text/plain" hidden></label>
+    <ol class="backup-steps">
+      <li>古いスマホから送ったバックアップの文字を、<b>全部コピー</b>する（LINE なら吹き出しを長押し →「コピー」）</li>
+      <li>下の「コピーした文字を貼り付ける」を押す</li>
+      <li>「復元する」を押す</li>
+    </ol>
+    <p class="sub" style="font-size:12.5px; margin-bottom:8px;">このスマホのマイ単語帳・「覚えた」・発音の記録は、バックアップの内容に置き換わります。</p>
+    <button class="btn secondary" id="btnPaste">コピーした文字を貼り付ける</button>
+    <textarea class="text-input" id="importText" rows="4" placeholder="ここに貼り付けても大丈夫です" style="margin-top:12px; font-size:12px; font-family:ui-monospace, Menlo, monospace;"></textarea>
+    <label class="btn ghost" style="display:block; cursor:pointer; margin-top:0;">保存したファイルを選ぶ<input type="file" id="importFile" accept=".json,.txt,application/json,text/plain" hidden></label>
     <button class="btn btn-indiv" id="btnDoImport">復元する</button>
   `);
+  $("#btnPaste").onclick = async () => {
+    try{
+      const t = await navigator.clipboard.readText();
+      if(!t.trim()){ toast("コピーした文字がありません"); return; }
+      $("#importText").value = t.trim();
+      toast("貼り付けました。「復元する」を押してください");
+    }catch(e){
+      $("#importText").focus();
+      toast("下の欄を長押しして「ペースト」してください");
+    }
+  };
   $("#importFile").onchange = async e => {
     const f = e.target.files && e.target.files[0];
     if(!f) return;
@@ -2020,11 +2063,12 @@ function showImportSheet(){
   };
   $("#btnDoImport").onclick = () => {
     const raw = $("#importText").value.trim();
-    if(!raw){ toast("テキストを貼り付けてください"); return; }
+    if(!raw){ toast("バックアップの文字を貼り付けてください"); return; }
     let p;
-    try{ p = JSON.parse(raw); }catch(e){ p = null; }
+    const body = raw.slice(raw.indexOf("{"), raw.lastIndexOf("}") + 1); // LINE などで送ると前後に文字が付くことがあるため
+    try{ p = JSON.parse(body); }catch(e){ p = null; }
     if(!p || typeof p !== "object" || !Array.isArray(p.customWords) || !Array.isArray(p.favorites)){
-      window.alert("読み込めませんでした。テキストが途中で切れていないか確認してください。");
+      window.alert("読み込めませんでした。バックアップの文字が最初から最後まで全部コピーできているか確認してください（{ で始まり } で終わります）。");
       return;
     }
     // 手で書き換えたり壊れたりしたバックアップでも安全に取り込めるよう、型を確かめてから入れる
@@ -2033,7 +2077,7 @@ function showImportSheet(){
     const knownIds = new Set([...BUILTIN_MAP.keys(), ...words.map(w => w.id)]);
     const learned = Array.isArray(p.learned) ? [...new Set(p.learned.filter(id => typeof id === "string" && knownIds.has(id)))] : [];
     const dropped = p.customWords.length - words.length;
-    if(!window.confirm(`自作 ${words.length}語・お気に入り ${favs.length}件 を復元します。今のマイ単語帳は上書きされます。よろしいですか？${dropped > 0 ? `\n（形式が正しくない ${dropped}語は読み込めませんでした）` : ""}`)) return;
+    if(!window.confirm(`自作 ${words.length}語・お気に入り ${favs.length}件・覚えた ${learned.length}件 を復元します。このスマホのマイ単語帳は置き換わります。よろしいですか？${dropped > 0 ? `\n（形式が正しくない ${dropped}語は読み込めませんでした）` : ""}`)) return;
     state.customWords = words;
     state.favorites = favs;
     state.learned = learned;
@@ -2048,7 +2092,7 @@ function showImportSheet(){
     saveState();
     close();
     document.querySelectorAll(".sheet-overlay").forEach(o => o._close());
-    toast("復元しました");
+    toast(`復元しました（自作 ${words.length}語・お気に入り ${favs.length}件）`);
     render();
   };
 }
