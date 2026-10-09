@@ -179,6 +179,26 @@
   .item-ex{ margin-top:8px; padding:8px 10px; border-radius:10px; background:var(--track); font-size:14px; line-height:1.5; }
   .item-ex-en{ font-family:var(--font-en); font-weight:600; overflow-wrap:anywhere; }
   .item-ex-ja{ display:block; color:var(--sub); font-size:13px; overflow-wrap:anywhere; }
+  .alt-btn{ display:inline-flex; align-items:center; gap:4px; margin-top:6px; padding:3px 10px; border-radius:999px; border:1.5px solid var(--blue); background:var(--surface); color:var(--blue); font-size:12px; font-weight:800; cursor:pointer; }
+  .alt-btn:active{ background:var(--blue-light); }
+  .alt-tag{ display:inline-flex; align-items:center; height:20px; margin-left:8px; padding:0 7px; border-radius:6px; background:var(--blue-light); color:var(--blue); font-size:11px; font-weight:800; vertical-align:3px; font-family:var(--font-ui); }
+  .item-orig{ display:block; font-size:12px; font-weight:700; }
+  .item-orig span{ font-family:var(--font-en); }
+  .item-row:not(.alts-open) .item-alts{ display:none; }
+  .item-alts{ margin-top:8px; padding:6px 8px; border-radius:12px; border:1.5px solid var(--blue-light); background:var(--surface); }
+  .alt-line{ display:flex; align-items:center; gap:6px; padding:5px 0; }
+  .alt-line + .alt-line{ border-top:1px solid var(--hair); }
+  .alt-line .speak-btn-sm{ margin:0; flex-shrink:0; }
+  .alt-text{ flex:1; min-width:0; display:flex; flex-direction:column; line-height:1.35; }
+  .alt-text b{ font-family:var(--font-en); font-size:15px; overflow-wrap:anywhere; }
+  .alt-text small{ font-size:11.5px; color:var(--sub); font-weight:700; }
+  .alt-main{ flex-shrink:0; padding:4px 9px; border-radius:8px; border:1.5px solid var(--hair); background:var(--surface); color:var(--sub); font-size:11.5px; font-weight:800; cursor:pointer; }
+  .alt-main.on{ border-color:var(--blue); background:var(--blue); color:#fff; cursor:default; }
+  .alt-line.is-main b{ color:var(--blue); }
+  .flash-alt-row{ display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap; margin-top:2px; }
+  .flash-alt-row .alt-btn{ margin-top:0; }
+  .flash-alt-label{ font-size:12px; color:var(--blue); font-weight:800; }
+  .flash-alt-label:empty{ display:none; }
   .item-gloss{ display:flex; flex-wrap:wrap; gap:4px 6px; margin-top:7px; font-size:12.5px; line-height:1.5; color:var(--text); }
   .gloss-head{ display:inline-flex; align-items:center; height:20px; padding:0 7px; border-radius:6px; background:var(--accent-light); color:var(--accent); font-size:11px; font-weight:800; }
   .gloss-item{ padding:1px 8px; border-radius:6px; background:var(--track); }
@@ -405,9 +425,9 @@
 </head>
 <body>
 <div class="app" id="app"></div>
-<script src="phrases-data.js?v=f43450dc"></script>
+<script src="phrases-data.js?v=2ede2d63"></script>
 <!-- お手本音声(AI音声)の一覧。tools/make-audio.mjs が作る -->
-<script src="audio/manifest.js?v=25cd7010"></script>
+<script src="audio/manifest.js?v=00165331"></script>
 <script>
 "use strict";
 /* ベビー用品店の接客英語アプリ(Webアプリ版)。
@@ -428,6 +448,14 @@ function parseGloss(id){
     return k > 0 ? [x.slice(0, k), x.slice(k + 1)] : ["", x];
   });
 }
+// 言い換え(phrases-data.js の PHRASE_ALTS)。「言い方（メモ）｜言い方」を [{en, note}, …] にする
+function parseAlts(id){
+  const raw = (typeof PHRASE_ALTS !== "undefined" && PHRASE_ALTS[id]) || "";
+  return raw.split("｜").map(x => x.trim()).filter(Boolean).map(x => {
+    const m = x.match(/^(.*?)（(.*)）$/);
+    return m ? { en:m[1].trim(), note:m[2].trim() } : { en:x, note:"" };
+  });
+}
 // 語句の解説の表示(一覧で例文を開いたときだけ。フラッシュカードは情報が多くなるので出さない)
 function glossHtml(w, cls){
   if(!w.gloss || w.gloss.length === 0) return "";
@@ -439,10 +467,10 @@ PHRASE_BOOK.forEach(c => c.items.forEach((row, i) => {
   const id = `${c.id}-${i + 1}`;
   if(c.kind === "phrase"){
     const [en, ja, note] = row;
-    BUILTIN.push({ id, cat:c.id, en, ja, pos:"", ex_en:"", ex_ja:"", note:note || "", gloss:parseGloss(id) });
+    BUILTIN.push({ id, cat:c.id, en, ja, pos:"", ex_en:"", ex_ja:"", note:note || "", gloss:parseGloss(id), alts:parseAlts(id) });
   } else {
     const [en, ja, pos, ex_en, ex_ja, note] = row;
-    BUILTIN.push({ id, cat:c.id, en, ja, pos:pos || "", ex_en:ex_en || "", ex_ja:ex_ja || "", note:note || "", gloss:parseGloss(id) });
+    BUILTIN.push({ id, cat:c.id, en, ja, pos:pos || "", ex_en:ex_en || "", ex_ja:ex_ja || "", note:note || "", gloss:parseGloss(id), alts:parseAlts(id) });
   }
 }));
 const BUILTIN_MAP = new Map(BUILTIN.map(w => [w.id, w]));
@@ -463,7 +491,8 @@ function defaultState(){
     speechRate: "normal", // "normal" | "slow"
     autoSpeak: true,    // フラッシュカードで英語が見えたら読み上げる
     pron: {},           // 発音チェックの記録: id -> {n:回数, ok:80点以上の回数, best:最高点}
-    tutorialSeen: false // 使い方の説明を見終わったか(初めて開いたときだけ自動で出す)
+    tutorialSeen: false, // 使い方の説明を見終わったか(初めて開いたときだけ自動で出す)
+    altMain: {}         // 言い換えをメインに表示している単語: id -> 言い換えの番号
   };
 }
 const asStr = v => typeof v === "string" ? v : "";
@@ -499,6 +528,7 @@ function loadState(){
   base.learned = [...new Set(base.learned.filter(id => typeof id === "string"))];
   const pronOk = v => v && typeof v === "object" && [v.n, v.ok, v.best].every(x => Number.isFinite(x));
   base.pron = Object.fromEntries(Object.entries(base.pron).filter(([, v]) => pronOk(v)));
+  base.altMain = Object.fromEntries(Object.entries(base.altMain).filter(([id, i]) => Number.isInteger(i) && BUILTIN_MAP.has(id) && BUILTIN_MAP.get(id).alts[i]));
   base.nextCustomId = Math.max(base.nextCustomId, nextIdAfter(base.customWords));
   return base;
 }
@@ -548,7 +578,7 @@ function esc(s){ return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","
 function normEn(s){ return String(s || "").toLowerCase().replace(/[’‘]/g, "'").replace(/[.,!?。、！？]+/g, " ").replace(/\s+/g, " ").trim(); }
 function matchesQuery(w, q){
   if(!q) return true;
-  return [w.en, w.ja, w.pos, w.ex_en, w.ex_ja, w.note].join("\n").toLowerCase().includes(q);
+  return [w.en, w.ja, w.pos, w.ex_en, w.ex_ja, w.note, ...altsOf(w).map(a => a.en)].join("\n").toLowerCase().includes(q);
 }
 function toast(msg){
   let t = document.getElementById("toast");
@@ -576,6 +606,7 @@ const ICON = {
   help: s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="display:block;"><circle cx="12" cy="12" r="9.5" stroke="currentColor" stroke-width="2.2"/><path d="M9.3 9.4a2.8 2.8 0 1 1 3.9 2.6c-.8.4-1.2 1-1.2 1.8v.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="17.3" r="1.3" fill="currentColor"/></svg>`,
   share: s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="display:block;"><path d="M12 3v12M8 7l4-4 4 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 11H6.5A1.5 1.5 0 0 0 5 12.5v7A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5v-7a1.5 1.5 0 0 0-1.5-1.5H16" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>`,
   stop: s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden="true" style="display:block;"><rect x="6" y="6" width="12" height="12" rx="2.5" fill="currentColor"/></svg>`,
+  swap: s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="display:block; flex-shrink:0;"><path d="M4 8h14M14 4l4 4-4 4M20 16H6M10 12l-4 4 4 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
   mic: s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="display:block; flex-shrink:0;"><rect x="8.5" y="2.5" width="7" height="12" rx="3.5" fill="currentColor"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>`,
   cards: s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="display:block;"><rect x="3" y="6" width="14" height="14" rx="3" stroke="currentColor" stroke-width="2.2"/><path d="M7 3h11a3 3 0 0 1 3 3v11" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>`
 };
@@ -620,18 +651,39 @@ function stopSpeech(){
     try{ a.load(); }catch(e){}
   }
 }
+/* 言い換え: 一覧で「メインにする」を押すと、その言い換えを大きく表示し、カードや発音チェックでもそれを使う */
+const altsOf = w => w.alts || [];
+function mainAltIndex(w){
+  const i = state.altMain[w.id];
+  return Number.isInteger(i) && altsOf(w)[i] ? i : -1;
+}
+const displayEn = w => mainAltIndex(w) >= 0 ? w.alts[mainAltIndex(w)].en : w.en;
+// カード・発音チェックで「↔ 言い換え」を押したときに切り替える順(今表示しているもの → 元の単語 → ほかの言い換え)
+const variantsOf = w => [...new Set([displayEn(w), w.en, ...altsOf(w).map(a => a.en)])];
+function variantLabel(w, text){
+  if(!altsOf(w).length) return "";
+  if(text === w.en) return "元の単語";
+  const a = altsOf(w).find(x => x.en === text);
+  return a ? `言い換え${a.note ? `（${a.note}）` : ""}` : "";
+}
 /* 収録済みの単語・例文は、AIで作ったお手本音声(audio/)を鳴らす。音声ファイルが無いもの(自作単語・音声を作る前に足した項目)や、
    文言を書き換えて音声と合わなくなったものは、端末の読み上げにする */
 let currentAudio = null;
 const AUDIO = window.AUDIO_MANIFEST || {};
-function audioFileFor(w, part){
-  const a = !isCustom(w) && AUDIO[w.id] && AUDIO[w.id][part];
-  return a && a.text === (part === "ex" ? w.ex_en : w.en) ? a.file : null;
+// その単語のお手本音声の中から、読み上げたい文と同じものを探す(本文・例文・言い換えのどれでも)
+function audioFileFor(w, text){
+  const parts = (!isCustom(w) && AUDIO[w.id]) || {};
+  const hit = Object.values(parts).find(a => a && a.text === text);
+  return hit ? hit.file : null;
 }
+// part: "word"(いま表示している英語) / "ex"(例文)。それ以外の文字はその文を読む(言い換え)
 function playEntry(w, part, slow){
-  const text = part === "ex" ? w.ex_en : w.en;
+  const text = part === "ex" ? w.ex_en : part === "word" ? displayEn(w) : part;
+  playText(w, text, slow);
+}
+function playText(w, text, slow){
   if(!text) return;
-  const file = audioFileFor(w, part);
+  const file = audioFileFor(w, text);
   if(!file){ speak(text, slow); return; }
   stopSpeech();
   const a = new Audio("audio/" + file);
@@ -683,6 +735,19 @@ function itemRow(w, mode, opts){
   }
   if(state.pron[w.id]) tags.push(`<span class="pron-tag">発音 ${state.pron[w.id].best}点</span>`);
   const hasDetails = !!(w.ex_en || w.ex_ja || w.note || (w.gloss && w.gloss.length));
+  const alts = altsOf(w);
+  const mainAlt = mainAltIndex(w);
+  // 言い換えの一覧(元の単語も並べ、どれをメインに表示するか選べる)
+  const altLine = (text, note, i) => `<div class="alt-line${i === mainAlt ? " is-main" : ""}">
+      <button class="speak-btn-sm" data-act="alt-speak" data-i="${i}" aria-label="発音を聞く">${ICON.speaker(15)}</button>
+      <span class="alt-text"><b lang="en">${esc(text)}</b>${note ? `<small>${esc(note)}</small>` : ""}</span>
+      ${i === mainAlt ? `<span class="alt-main on">メイン</span>` : `<button class="alt-main" data-act="alt-main" data-i="${i}">${i < 0 ? "元に戻す" : "メインにする"}</button>`}
+    </div>`;
+  const altsHtml = alts.length ? `
+    <div class="item-alts">
+      ${altLine(w.en, "元の単語", -1)}
+      ${alts.map((a, i) => altLine(a.en, a.note, i)).join("")}
+    </div>` : "";
   const actions = mode === "my"
     ? `<button class="speak-btn" data-act="speak" aria-label="発音を聞く">${ICON.speaker(18)}</button>
        ${custom
@@ -692,12 +757,14 @@ function itemRow(w, mode, opts){
     : `<button class="speak-btn" data-act="speak" aria-label="発音を聞く">${ICON.speaker(18)}</button>
        <button class="heart-btn${isFav(w) ? " on" : ""}" data-act="fav" aria-pressed="${isFav(w)}" aria-label="マイ単語帳に入れる">${ICON.heart(22, isFav(w))}</button>`;
   return `
-    <div class="item-row" data-id="${id}" data-q="${esc([w.en, w.ja, w.pos, w.ex_en, w.ex_ja, w.note].join("\n").toLowerCase())}">
+    <div class="item-row" data-id="${id}" data-mode="${mode}" data-src="${opts.showSource ? 1 : 0}" data-q="${esc([w.en, w.ja, w.pos, w.ex_en, w.ex_ja, w.note, ...alts.map(a => a.en)].join("\n").toLowerCase())}">
       ${mode === "my" ? `<button class="learn-check${learned ? " on" : ""}" data-act="learn" aria-pressed="${learned}" aria-label="覚えた"><span class="learn-check-dot">${ICON.check(15)}</span><span class="learn-check-label">覚えた</span></button>` : ""}
       <div class="item-body${hasDetails ? " has-details" : ""}"${hasDetails ? ` data-toggle aria-expanded="false"` : ""}>
         ${tags.length ? `<div class="item-tags">${tags.join("")}</div>` : ""}
-        <div class="item-en"><span lang="en">${esc(w.en)}</span>${w.pos ? `<span class="word-pos">${esc(w.pos)}</span>` : ""}</div>
-        <div class="item-ja">${esc(w.ja)}</div>
+        <div class="item-en"><span lang="en">${esc(displayEn(w))}</span>${mainAlt >= 0 ? `<span class="alt-tag">言い換え</span>` : ""}${w.pos ? `<span class="word-pos">${esc(w.pos)}</span>` : ""}</div>
+        <div class="item-ja">${esc(w.ja)}${mainAlt >= 0 ? `<span class="item-orig">元の単語：<span lang="en">${esc(w.en)}</span></span>` : ""}</div>
+        ${alts.length ? `<button class="alt-btn" data-act="alts" aria-expanded="false">${ICON.swap(13)}言い換え ${alts.length}</button>` : ""}
+        ${altsHtml}
         ${hasDetails ? `<span class="item-more">${w.ex_en || w.ex_ja ? "例文" : "解説"}を見る ▾</span>` : ""}
         <div class="item-details">
           ${w.ex_en || w.ex_ja ? `<div class="item-ex">${w.ex_en ? `<span class="item-ex-en" lang="en">${esc(w.ex_en)}</span><button class="speak-btn-sm" data-act="speak-ex" aria-label="例文を聞く">${ICON.speaker(15)}</button>` : ""}${w.ex_ja ? `<span class="item-ex-ja">${esc(w.ex_ja)}</span>` : ""}</div>` : ""}
@@ -727,6 +794,27 @@ function bindRows(container, hooks){
     if(!w) return;
     const act = btn.dataset.act;
     if(act === "speak") playEntry(w, "word");
+    else if(act === "alts"){
+      const open = row.classList.toggle("alts-open");
+      btn.setAttribute("aria-expanded", open);
+    } else if(act === "alt-speak"){
+      const i = Number(btn.dataset.i);
+      playText(w, i < 0 ? w.en : w.alts[i].en);
+    } else if(act === "alt-main"){
+      const i = Number(btn.dataset.i);
+      if(i < 0) delete state.altMain[w.id]; else state.altMain[w.id] = i;
+      saveState();
+      toast(i < 0 ? "元の単語に戻しました" : `「${w.alts[i].en}」をメインにしました`);
+      // その行だけ描き直す(開いていた言い換え・例文はそのまま)
+      const wasOpen = row.classList.contains("open");
+      const tmp = document.createElement("div");
+      tmp.innerHTML = itemRow(w, row.dataset.mode, { showSource: row.dataset.src === "1" });
+      const fresh = tmp.firstElementChild;
+      fresh.classList.add("alts-open");
+      fresh.classList.toggle("open", wasOpen);
+      row.replaceWith(fresh);
+      playText(w, displayEn(w));
+    }
     else if(act === "speak-ex") playEntry(w, "ex");
     else if(act === "fav"){
       const on = toggleFav(w);
@@ -1250,7 +1338,12 @@ function renderFlashcard(){
     saveState();
   }
   const jaFront = flash.front === "ja";
-  const enHtml = `<div class="flash-en-row"><div class="flash-en${w.en.length > 28 ? " long" : ""}" lang="en">${esc(w.en)}</div><button class="speak-btn" id="flashSpeak" aria-label="発音を聞く">${ICON.speaker(18)}</button></div>`;
+  // 「↔ 言い換え」で、元の単語と言い換えを切り替えて見られる(そのカードの間だけ)
+  const variants = variantsOf(w);
+  let vi = 0;
+  const shownEn = () => variants[vi];
+  const enHtml = `<div class="flash-en-row"><div class="flash-en${shownEn().length > 28 ? " long" : ""}" lang="en">${esc(shownEn())}</div><button class="speak-btn" id="flashSpeak" aria-label="発音を聞く">${ICON.speaker(18)}</button></div>
+    ${variants.length > 1 ? `<div class="flash-alt-row"><span class="flash-alt-label">${esc(variantLabel(w, shownEn()))}</span><button class="alt-btn" data-flash-alt>${ICON.swap(13)}言い換え</button></div>` : ""}`;
   const jaHtml = `<div class="flash-ja">${esc(w.ja)}</div>`;
   const source = custom ? "自作" : (catById(w.cat) || {}).name || "";
   const keepFlip = flash.keepFlip && !!document.querySelector("#flashInner.flipped");
@@ -1339,7 +1432,14 @@ function renderFlashcard(){
     else if(dx > 60 && !isFirst) goFlash(-1);
     else { slide.style.transition = "transform .2s ease-out"; slide.style.transform = ""; }
   });
-  const speakBtn = id => { const b = document.getElementById(id); if(b) b.onclick = e => { e.stopPropagation(); playEntry(w, "word"); }; };
+  const speakBtn = id => { const b = document.getElementById(id); if(b) b.onclick = e => { e.stopPropagation(); playText(w, shownEn()); }; };
+  document.querySelectorAll("[data-flash-alt]").forEach(b => b.onclick = e => {
+    e.stopPropagation(); // カードがめくれないように
+    vi = (vi + 1) % variants.length;
+    document.querySelectorAll(".flash-en").forEach(el => { el.textContent = shownEn(); el.classList.toggle("long", shownEn().length > 28); });
+    document.querySelectorAll(".flash-alt-label").forEach(el => { el.textContent = variantLabel(w, shownEn()); });
+    playText(w, shownEn());
+  });
   speakBtn("flashSpeak");
   speakBtn("flashSpeakBack");
   const exBtn = document.getElementById("flashSpeakEx");
@@ -1562,6 +1662,10 @@ function renderPron(){
   const isLast = pron.idx === n - 1;
   const indiv = pron.tone === "indiv";
   const nextLabel = () => isLast ? "おわり" : (pron.scores[w.id] != null ? "次へ" : "スキップ");
+  // 「↔ 言い換え」で、言い換えのほうを練習・採点できる(選んだものはこの発音チェックの間は覚えておく)
+  const variants = variantsOf(w);
+  pron.vi = pron.vi || {};
+  const target = () => variants[(pron.vi[w.id] || 0) % variants.length];
   app.innerHTML = `
     <div class="progress-row">
       <button class="icon-btn" id="btnPronPause" aria-label="一覧に戻る" style="margin-left:-8px;">${ICON.left(22)}</button>
@@ -1570,8 +1674,9 @@ function renderPron(){
     <div class="flash-dots" aria-hidden="true" style="--fc-tone:var(--blue);"><div class="flash-dots-fill" style="width:${Math.round(100 * (pron.idx + 1) / n)}%;"></div></div>
     <div class="pron-card">
       ${w.pos ? `<span class="word-pos">${esc(w.pos)}</span>` : ""}
-      <div class="pron-en${w.en.length > 24 ? " long" : ""}" lang="en">${esc(w.en)}</div>
+      <div class="pron-en${target().length > 24 ? " long" : ""}" lang="en" id="pronEn">${esc(target())}</div>
       <div class="pron-ja">${esc(w.ja)}</div>
+      ${variants.length > 1 ? `<div class="flash-alt-row"><span class="flash-alt-label" id="pronAltLabel">${esc(variantLabel(w, target()))}</span><button class="alt-btn" id="btnPronAlt">${ICON.swap(13)}言い換え</button></div>` : ""}
       <div class="pron-listen">
         <button class="btn secondary" id="btnModel">${ICON.speaker(16)}お手本を聞く</button>
         <button class="btn ghost" id="btnModelSlow">ゆっくり</button>
@@ -1600,7 +1705,7 @@ function renderPron(){
       : r.score >= 50 ? ["close", "おしい！もう一度"] : ["retry", "お手本を聞いて、もう一度"];
     // 単語ごとに、言えたか(ふつうの色)・言えていないか(赤の波線)を出す
     let k = 0;
-    const words = w.en.split(/\s+/).map(word => {
+    const words = r.target.split(/\s+/).map(word => {
       const t = pronTokens(word).length;
       const ok = t === 0 || r.hits.slice(k, k + t).every(Boolean);
       k += t;
@@ -1613,7 +1718,7 @@ function renderPron(){
       <div class="pron-heard">聞き取れた英語：<span lang="en">“${esc(r.heard)}”</span></div>
     </div>`;
   };
-  if(pron.results[w.id]) showResult(pron.results[w.id]);
+  if(pron.results[w.id] && pron.results[w.id].target === target()) showResult(pron.results[w.id]);
   micBtn.addEventListener("contextmenu", e => e.preventDefault());
   const statusEl = document.getElementById("micStatus");
   // マイクの状態を、ボタンの形・色と文字ではっきり見せる(いつ話し始めて、いつ終わればいいか分かるように)
@@ -1672,7 +1777,7 @@ function renderPron(){
     rec.maxAlternatives = 5;
     rec.continuous = true; // ■を押すか、黙るまで聞き続ける(途中で勝手に切れないように)
     // 「この言葉が来るはず」というヒントを渡せるブラウザでは渡す(短い単語の聞き違いを減らす)
-    try{ if("SpeechRecognitionPhrase" in window) rec.phrases = [new window.SpeechRecognitionPhrase(w.en, 5.0)]; }catch(e){}
+    try{ if("SpeechRecognitionPhrase" in window) rec.phrases = [new window.SpeechRecognitionPhrase(target(), 5.0)]; }catch(e){}
     let finals = [], alts = [], interim = "", err = null, maxTimer = null, silenceTimer = null, noSpeechTimer = null, started = false, gotResult = false;
     // うまく動かないときに原因を探れるよう、届いた合図を記録しておく(失敗したときに小さく表示する)
     const t0 = Date.now(), diag = [];
@@ -1744,12 +1849,13 @@ function renderPron(){
           : err === "service-not-allowed" ? "音声の聞き取りが使えません<small>iPhone は「設定 → 一般 → キーボード → 音声入力」と「設定 → Siri」をオンにしてください</small>"
           : err === "network" ? "通信できませんでした<small>インターネットにつながっているか確認してください</small>"
           : err === "audio-capture" ? "マイクが見つかりませんでした<small>ほかのアプリがマイクを使っていないか確認してください</small>"
-          : started ? `聞き取れませんでした<small>少しゆっくり、はっきり言ってみてください。${pronTokens(w.en).length === 1 ? `短い単語は「the ${esc(w.en)}」のように前に the を付けて言っても大丈夫です` : ""}</small>`
+          : started ? `聞き取れませんでした<small>少しゆっくり、はっきり言ってみてください。${pronTokens(target()).length === 1 ? `短い単語は「the ${esc(target())}」のように前に the を付けて言っても大丈夫です` : ""}</small>`
           : "聞き取れませんでした<small>マイクをタップして、「録音中」と出てから話してください</small>") + (started && !err ? "" : diagText()));
         return;
       }
       setMic("scoring");
-      const r = bestPronScore(w.en, heardList);
+      const r = bestPronScore(target(), heardList);
+      r.target = target();
       recordPron(w, r.score);
       pron.scores[w.id] = Math.max(pron.scores[w.id] ?? 0, r.score);
       pron.results[w.id] = r;
@@ -1763,13 +1869,25 @@ function renderPron(){
     try{ rec.start(); recRunning++; }
     catch(e){ currentRec = null; setMic("idle", "マイクを使い始められませんでした。もう一度タップしてください"); }
   };
-  document.getElementById("btnModel").onclick = () => { stopListening(); setMic("idle"); playEntry(w, "word"); };
-  document.getElementById("btnModelSlow").onclick = () => { stopListening(); setMic("idle"); playEntry(w, "word", true); };
+  document.getElementById("btnModel").onclick = () => { stopListening(); setMic("idle"); playText(w, target()); };
+  document.getElementById("btnModelSlow").onclick = () => { stopListening(); setMic("idle"); playText(w, target(), true); };
+  const altBtn = document.getElementById("btnPronAlt");
+  if(altBtn) altBtn.onclick = () => {
+    stopListening();
+    pron.vi[w.id] = ((pron.vi[w.id] || 0) + 1) % variants.length;
+    const el = document.getElementById("pronEn");
+    el.textContent = target();
+    el.classList.toggle("long", target().length > 24);
+    document.getElementById("pronAltLabel").textContent = variantLabel(w, target());
+    resultEl.innerHTML = "";
+    setMic("idle");
+    playText(w, target());
+  };
   document.getElementById("btnPronPause").onclick = finishPron;
   document.getElementById("btnPronPrev").onclick = () => { if(pron.idx > 0){ pron.idx--; render(); } };
   nextBtn.onclick = () => { pron.idx++; render(); };
   // 新しい単語が出たら、まずお手本を流す
-  if(state.autoSpeak && pron.spokenIdx !== pron.idx){ pron.spokenIdx = pron.idx; playEntry(w, "word"); }
+  if(state.autoSpeak && pron.spokenIdx !== pron.idx){ pron.spokenIdx = pron.idx; playText(w, target()); }
 }
 function renderPronEnd(){
   const tried = pron.queue.filter(w => pron.scores[w.id] != null);
@@ -1864,7 +1982,7 @@ function showSettingsSheet(){
 function backupPayload(){
   return {
     app: "babyShopEnglish", version: 1, exportedAt: new Date().toISOString(),
-    customWords: state.customWords, favorites: state.favorites, learned: state.learned, pron: state.pron
+    customWords: state.customWords, favorites: state.favorites, learned: state.learned, pron: state.pron, altMain: state.altMain
   };
 }
 function showExportSheet(){
@@ -1927,6 +2045,9 @@ function showImportSheet(){
     state.customWords = words;
     state.favorites = favs;
     state.learned = learned;
+    if(p.altMain && typeof p.altMain === "object" && !Array.isArray(p.altMain)){
+      state.altMain = Object.fromEntries(Object.entries(p.altMain).filter(([id, i]) => Number.isInteger(i) && BUILTIN_MAP.has(id) && BUILTIN_MAP.get(id).alts[i]));
+    }
     if(p.pron && typeof p.pron === "object" && !Array.isArray(p.pron)){
       state.pron = Object.fromEntries(Object.entries(p.pron).filter(([id, v]) => knownIds.has(id) && v && [v.n, v.ok, v.best].every(x => Number.isFinite(x))));
     }

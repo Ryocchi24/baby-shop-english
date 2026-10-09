@@ -5,6 +5,7 @@
 //     node make-audio.mjs --dry     … 作る件数を見るだけ
 //     node make-audio.mjs           … 作成(初回は音声モデル約90MBをダウンロードする)
 //
+//   - 単語・フレーズの本文、例文、言い換え(PHRASE_ALTS)の音声を作る。
 //   - audio/ に m4a(AAC) を書き出し、audio/manifest.js(アプリが読む一覧)を作り直す。
 //   - すでにある音声は作り直さない。phrases-data.js の英文を書き換えたものだけ作り直すので、何度実行してもよい。
 //   - 声は環境変数 TTS_VOICE で変えられる(既定 af_heart = アメリカ英語の女性。変えると全部作り直しになる)。
@@ -27,7 +28,11 @@ const DRY = process.argv.includes("--dry");
 
 // phrases-data.js をブラウザと同じように読み込む
 const ctx = {};
-vm.runInNewContext(fs.readFileSync(path.join(ROOT, "phrases-data.js"), "utf8") + "\nthis.PHRASE_BOOK = PHRASE_BOOK;", ctx);
+vm.runInNewContext(fs.readFileSync(path.join(ROOT, "phrases-data.js"), "utf8")
+  + "\nthis.PHRASE_BOOK = PHRASE_BOOK; this.PHRASE_ALTS = typeof PHRASE_ALTS !== 'undefined' ? PHRASE_ALTS : {};", ctx);
+// 言い換え(index.html の parseAlts と同じ読み方。（ ）の中は日本語のメモなので読まない)
+const altsOf = id => String(ctx.PHRASE_ALTS[id] || "").split("｜").map(x => x.trim()).filter(Boolean)
+  .map(x => x.replace(/（.*）$/, "").trim());
 
 const jobs = [];
 for(const c of ctx.PHRASE_BOOK){
@@ -35,11 +40,12 @@ for(const c of ctx.PHRASE_BOOK){
     const id = `${c.id}-${i + 1}`; // index.html と同じ振り方
     jobs.push({ id, part:"word", text:row[0] });
     if(c.kind === "word" && row[3]) jobs.push({ id, part:"ex", text:row[3] });
+    altsOf(id).forEach((text, k) => jobs.push({ id, part:`alt${k}`, text }));
   });
 }
 for(const j of jobs){
   const hash = crypto.createHash("sha1").update([MODEL, DTYPE, VOICE, SPEED, j.text].join("\n")).digest("hex").slice(0, 8);
-  j.file = `${j.id}${j.part === "ex" ? "-ex" : ""}.${hash}.m4a`;
+  j.file = `${j.id}${j.part === "word" ? "" : "-" + j.part}.${hash}.m4a`;
 }
 const todo = jobs.filter(j => !fs.existsSync(path.join(AUDIO_DIR, j.file)));
 console.log(`音声 ${jobs.length}件のうち、新しく作るのは ${todo.length}件`);
