@@ -179,11 +179,10 @@
   .item-ex{ margin-top:8px; padding:8px 10px; border-radius:10px; background:var(--track); font-size:14px; line-height:1.5; }
   .item-ex-en{ font-family:var(--font-en); font-weight:600; overflow-wrap:anywhere; }
   .item-ex-ja{ display:block; color:var(--sub); font-size:13px; overflow-wrap:anywhere; }
-  .item-gloss, .flash-gloss{ display:flex; flex-wrap:wrap; gap:4px 6px; margin-top:7px; font-size:12.5px; line-height:1.5; color:var(--text); }
+  .item-gloss{ display:flex; flex-wrap:wrap; gap:4px 6px; margin-top:7px; font-size:12.5px; line-height:1.5; color:var(--text); }
   .gloss-head{ display:inline-flex; align-items:center; height:20px; padding:0 7px; border-radius:6px; background:var(--accent-light); color:var(--accent); font-size:11px; font-weight:800; }
   .gloss-item{ padding:1px 8px; border-radius:6px; background:var(--track); }
   .gloss-item b{ font-family:var(--font-en); font-weight:700; }
-  .flash-gloss{ justify-content:center; margin-top:6px; font-size:12px; text-align:left; }
   .item-note{ display:flex; gap:5px; margin-top:7px; font-size:12.5px; line-height:1.5; color:var(--sub); font-weight:700; }
   .item-note svg{ flex-shrink:0; margin-top:2px; color:var(--gold); }
   .item-tags{ display:flex; flex-wrap:wrap; gap:5px; margin-bottom:4px; }
@@ -429,7 +428,7 @@ function parseGloss(id){
     return k > 0 ? [x.slice(0, k), x.slice(k + 1)] : ["", x];
   });
 }
-// 語句の解説の表示(一覧とフラッシュカードの裏で共通)
+// 語句の解説の表示(一覧で例文を開いたときだけ。フラッシュカードは情報が多くなるので出さない)
 function glossHtml(w, cls){
   if(!w.gloss || w.gloss.length === 0) return "";
   return `<div class="${cls}"><span class="gloss-head">語句</span>${w.gloss.map(([k, v]) =>
@@ -1280,7 +1279,6 @@ function renderFlashcard(){
             <div class="flashcard-body">
               ${jaFront ? enHtml.replace('id="flashSpeak"', 'id="flashSpeakBack"') : jaHtml}
               ${w.ex_en || w.ex_ja ? `<div class="flash-ex">${w.ex_en ? `<div class="flash-ex-en" lang="en">${esc(w.ex_en)}<button class="speak-btn-sm" id="flashSpeakEx" aria-label="例文を聞く">${ICON.speaker(15)}</button></div>` : ""}${w.ex_ja ? `<div class="flash-ex-ja">${esc(w.ex_ja)}</div>` : ""}</div>` : ""}
-              ${glossHtml(w, "flash-gloss")}
               ${w.note ? `<div class="flash-note">${esc(w.note)}</div>` : ""}
             </div>
           </div>
