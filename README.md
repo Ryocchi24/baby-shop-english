@@ -67,3 +67,9 @@ node make-audio.mjs          # 作成（初回は音声モデル約90MBをダウ
 ## アイコン
 
 元の絵は `icons/icon.svg`。`tools/make-icons.sh` でホーム画面用（180px）・Android用（192/512px）・タブ用（32px）のPNGを作る。
+
+## 更新を確実に反映させる仕組み
+
+GitHub Pages はファイルをブラウザに10分ほど使い回させるため、そのままだと「本体は新しいのにデータは古い」状態が起きる。
+`index.html` から読み込む `phrases-data.js` と `audio/manifest.js` には、中身から作った版番号（`?v=…`）を付けている。
+コミットのたびに `.git/hooks/pre-commit` が `tools/stamp-version.sh` を実行して付け直す（別の環境でクローンしたときは、このフックを置き直すか、コミット前に手で実行する）。
