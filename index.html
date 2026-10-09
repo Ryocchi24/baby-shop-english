@@ -731,12 +731,14 @@ function itemRow(w, mode, opts){
   if(opts.showSource){
     if(custom) tags.push(`<span class="indiv-tag">自作</span>`);
     else if(mode === "my") tags.push(`<span class="indiv-tag fav">お気に入り</span>`);
-    if(!custom){ const c = catById(w.cat); if(c) tags.push(`<span class="cat-tag">${esc(c.name)}</span>`); }
+    // カテゴリ名は検索結果でだけ出す(マイ単語帳では情報が多くなるので出さない)
+    if(!custom && mode !== "my"){ const c = catById(w.cat); if(c) tags.push(`<span class="cat-tag">${esc(c.name)}</span>`); }
   }
   if(state.pron[w.id]) tags.push(`<span class="pron-tag">発音 ${state.pron[w.id].best}点</span>`);
   const hasDetails = !!(w.ex_en || w.ex_ja || w.note || (w.gloss && w.gloss.length));
-  const alts = altsOf(w);
-  const mainAlt = mainAltIndex(w);
+  // 言い換えはカテゴリの一覧と検索結果でだけ扱う(マイ単語帳では情報が多くなるので、メインにした言い方を表示するだけ)
+  const alts = mode === "my" ? [] : altsOf(w);
+  const mainAlt = mode === "my" ? -1 : mainAltIndex(w);
   // 言い換えの一覧(元の単語も並べ、どれをメインに表示するか選べる)
   const altLine = (text, note, i) => `<div class="alt-line${i === mainAlt ? " is-main" : ""}">
       <button class="speak-btn-sm" data-act="alt-speak" data-i="${i}" aria-label="発音を聞く">${ICON.speaker(15)}</button>
