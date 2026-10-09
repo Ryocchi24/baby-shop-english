@@ -179,6 +179,11 @@
   .item-ex{ margin-top:8px; padding:8px 10px; border-radius:10px; background:var(--track); font-size:14px; line-height:1.5; }
   .item-ex-en{ font-family:var(--font-en); font-weight:600; overflow-wrap:anywhere; }
   .item-ex-ja{ display:block; color:var(--sub); font-size:13px; overflow-wrap:anywhere; }
+  .item-gloss, .flash-gloss{ display:flex; flex-wrap:wrap; gap:4px 6px; margin-top:7px; font-size:12.5px; line-height:1.5; color:var(--text); }
+  .gloss-head{ display:inline-flex; align-items:center; height:20px; padding:0 7px; border-radius:6px; background:var(--accent-light); color:var(--accent); font-size:11px; font-weight:800; }
+  .gloss-item{ padding:1px 8px; border-radius:6px; background:var(--track); }
+  .gloss-item b{ font-family:var(--font-en); font-weight:700; }
+  .flash-gloss{ justify-content:center; margin-top:6px; font-size:12px; text-align:left; }
   .item-note{ display:flex; gap:5px; margin-top:7px; font-size:12.5px; line-height:1.5; color:var(--sub); font-weight:700; }
   .item-note svg{ flex-shrink:0; margin-top:2px; color:var(--gold); }
   .item-tags{ display:flex; flex-wrap:wrap; gap:5px; margin-bottom:4px; }
@@ -416,15 +421,29 @@ const app = document.getElementById("app");
 
 /* ===================== 収録データ ===================== */
 const CATEGORIES = PHRASE_BOOK.map(c => ({ id:c.id, kind:c.kind, icon:c.icon, name:c.name, desc:c.desc || "" }));
+// 例文(フレーズは本文)の語句の解説(phrases-data.js の PHRASE_NOTES)。「語句＝意味｜語句＝意味」を [[語句, 意味], …] にする
+function parseGloss(id){
+  const raw = (typeof PHRASE_NOTES !== "undefined" && PHRASE_NOTES[id]) || "";
+  return raw.split("｜").map(x => x.trim()).filter(Boolean).map(x => {
+    const k = x.indexOf("＝");
+    return k > 0 ? [x.slice(0, k), x.slice(k + 1)] : ["", x];
+  });
+}
+// 語句の解説の表示(一覧とフラッシュカードの裏で共通)
+function glossHtml(w, cls){
+  if(!w.gloss || w.gloss.length === 0) return "";
+  return `<div class="${cls}"><span class="gloss-head">語句</span>${w.gloss.map(([k, v]) =>
+    `<span class="gloss-item">${k ? `<b lang="en">${esc(k)}</b>` : ""}${k ? "：" : ""}${esc(v)}</span>`).join("")}</div>`;
+}
 const BUILTIN = [];
 PHRASE_BOOK.forEach(c => c.items.forEach((row, i) => {
   const id = `${c.id}-${i + 1}`;
   if(c.kind === "phrase"){
     const [en, ja, note] = row;
-    BUILTIN.push({ id, cat:c.id, en, ja, pos:"", ex_en:"", ex_ja:"", note:note || "" });
+    BUILTIN.push({ id, cat:c.id, en, ja, pos:"", ex_en:"", ex_ja:"", note:note || "", gloss:parseGloss(id) });
   } else {
     const [en, ja, pos, ex_en, ex_ja, note] = row;
-    BUILTIN.push({ id, cat:c.id, en, ja, pos:pos || "", ex_en:ex_en || "", ex_ja:ex_ja || "", note:note || "" });
+    BUILTIN.push({ id, cat:c.id, en, ja, pos:pos || "", ex_en:ex_en || "", ex_ja:ex_ja || "", note:note || "", gloss:parseGloss(id) });
   }
 }));
 const BUILTIN_MAP = new Map(BUILTIN.map(w => [w.id, w]));
@@ -663,7 +682,7 @@ function itemRow(w, mode, opts){
     if(!custom){ const c = catById(w.cat); if(c) tags.push(`<span class="cat-tag">${esc(c.name)}</span>`); }
   }
   if(state.pron[w.id]) tags.push(`<span class="pron-tag">発音 ${state.pron[w.id].best}点</span>`);
-  const hasDetails = !!(w.ex_en || w.ex_ja || w.note);
+  const hasDetails = !!(w.ex_en || w.ex_ja || w.note || (w.gloss && w.gloss.length));
   const actions = mode === "my"
     ? `<button class="speak-btn" data-act="speak" aria-label="発音を聞く">${ICON.speaker(18)}</button>
        ${custom
@@ -679,9 +698,10 @@ function itemRow(w, mode, opts){
         ${tags.length ? `<div class="item-tags">${tags.join("")}</div>` : ""}
         <div class="item-en"><span lang="en">${esc(w.en)}</span>${w.pos ? `<span class="word-pos">${esc(w.pos)}</span>` : ""}</div>
         <div class="item-ja">${esc(w.ja)}</div>
-        ${hasDetails ? `<span class="item-more">${w.ex_en || w.ex_ja ? "例文" : "メモ"}を見る ▾</span>` : ""}
+        ${hasDetails ? `<span class="item-more">${w.ex_en || w.ex_ja ? "例文" : "解説"}を見る ▾</span>` : ""}
         <div class="item-details">
           ${w.ex_en || w.ex_ja ? `<div class="item-ex">${w.ex_en ? `<span class="item-ex-en" lang="en">${esc(w.ex_en)}</span><button class="speak-btn-sm" data-act="speak-ex" aria-label="例文を聞く">${ICON.speaker(15)}</button>` : ""}${w.ex_ja ? `<span class="item-ex-ja">${esc(w.ex_ja)}</span>` : ""}</div>` : ""}
+          ${glossHtml(w, "item-gloss")}
           ${w.note ? `<div class="item-note">${ICON.bulb(14)}<span>${esc(w.note)}</span></div>` : ""}
         </div>
       </div>
@@ -770,7 +790,7 @@ function renderHome(){
   document.getElementById("btnHelp").onclick = () => showTutorial();
   document.getElementById("btnOpenMy").onclick = () => go("my");
   document.getElementById("btnQuickAdd").onclick = () => showAddWordSheet(null, () => renderHome());
-  document.getElementById("btnMyFlash").onclick = () => { myFilter = "all"; startFlash(getMyEntries("all"), "マイ単語帳", { view:"home" }, "indiv"); };
+  document.getElementById("btnMyFlash").onclick = () => { myFilter = "all"; startFlash(getMyEntries("all"), "マイ単語帳", { view:"home" }, "indiv", { skipLearned:true }); };
   const input = document.getElementById("homeSearch");
   input.oninput = () => { homeQuery = input.value; renderHomeBody(); };
   input.addEventListener("keydown", e => { if(e.key === "Enter" && !e.isComposing) input.blur(); });
@@ -873,7 +893,7 @@ function renderMy(){
       </div>
       <div class="search-box" style="margin-bottom:12px;">${ICON.search(18)}<input type="search" id="mySearch" class="text-input" placeholder="単語・意味で検索" value="${esc(myQuery)}" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" aria-label="マイ単語帳を検索"></div>`}
     ${entries.length === 0 ? `<div class="empty-state">${emptyMessages[myFilter]}</div>` : `
-      ${state.learned.length === 0 ? `<p class="hint">覚えたら、左の「覚えた」にチェックしておきましょう。</p>` : `<p class="hint">覚えた ${learnedCount} / ${entries.length}</p>`}
+      ${state.learned.length === 0 ? `<p class="hint">覚えたら左の「覚えた」にチェック。フラッシュカードに出なくなります</p>` : `<p class="hint">覚えた ${learnedCount} / ${entries.length}（覚えた単語はフラッシュカードに出ません）</p>`}
       <div id="myRows">${entries.map(w => itemRow(w, "my", { showSource: myFilter === "all" })).join("")}</div>
       <div class="empty-state" id="myNoHit" style="display:none; padding:24px 16px;">一致する単語はありません。</div>
       <div class="footer-spacer"></div>
@@ -902,7 +922,7 @@ function renderMy(){
     search.oninput = () => { myQuery = search.value; filterRows(rows, myQuery, noHit); };
     search.addEventListener("keydown", e => { if(e.key === "Enter" && !e.isComposing) search.blur(); });
     filterRows(rows, myQuery, noHit);
-    document.getElementById("btnMyFlash").onclick = () => startFlash(entries, `マイ単語帳（${labels[myFilter]}）`, { view:"my" }, "indiv");
+    document.getElementById("btnMyFlash").onclick = () => startFlash(entries, `マイ単語帳（${labels[myFilter]}）`, { view:"my" }, "indiv", { skipLearned:true });
     document.getElementById("btnMyPron").onclick = () => startPron(entries, `マイ単語帳（${labels[myFilter]}）`, { view:"my" }, "indiv");
   }
 }
@@ -1159,13 +1179,24 @@ function shuffle(a){ for(let i = a.length - 1; i > 0; i--){ const j = Math.floor
 function orderForFlash(entries){
   return shuffle(entries.slice()).sort((a, b) => (state.seenAt[a.id] || 0) - (state.seenAt[b.id] || 0));
 }
-// 始める前に、出題のしかた(英語→日本語 か 日本語→英語)を選ぶ(選んだ内容は次回も使う)
-function startFlash(entries, title, back, tone){
+// 始める前に、出題のしかた(英語→日本語 か 日本語→英語)を選ぶ(選んだ内容は次回も使う)。
+// マイ単語帳から始めるときは(skipLearned)、一覧で「覚えた」にした単語は出さない
+function startFlash(entries, title, back, tone, opts){
   if(entries.length === 0) return;
+  const all = entries.length;
+  if(opts && opts.skipLearned) entries = entries.filter(w => !isLearned(w));
+  const skipped = all - entries.length;
   let front = state.flashFront === "ja" ? "ja" : "en";
+  if(entries.length === 0){
+    openSheet(`${sheetHead("フラッシュカード")}
+      <p style="margin:0 0 6px;">すべて「覚えた」になっています 🎉</p>
+      <p class="sub" style="font-size:14px;">もう一度めくりたい単語は、マイ単語帳の一覧で左の「覚えた」のチェックを外してください。</p>
+      <button class="btn btn-indiv" data-close>閉じる</button>`);
+    return;
+  }
   const { close, $ } = openSheet(`
     ${sheetHead("フラッシュカード")}
-    <p class="sub sheet-lead">${esc(title)}</p>
+    <p class="sub sheet-lead">${esc(title)}${skipped ? `<br><small>「覚えた」にした${skipped}語は出しません</small>` : ""}</p>
     <div class="opt-label">出題のしかた</div>
     <div class="segmented ${tone === "indiv" ? "" : "accent"}" id="flashFrontSeg">
       <button data-front="en">英語 → 日本語</button>
@@ -1239,6 +1270,7 @@ function renderFlashcard(){
             <div class="flashcard-body">
               ${jaFront ? enHtml.replace('id="flashSpeak"', 'id="flashSpeakBack"') : jaHtml}
               ${w.ex_en || w.ex_ja ? `<div class="flash-ex">${w.ex_en ? `<div class="flash-ex-en" lang="en">${esc(w.ex_en)}<button class="speak-btn-sm" id="flashSpeakEx" aria-label="例文を聞く">${ICON.speaker(15)}</button></div>` : ""}${w.ex_ja ? `<div class="flash-ex-ja">${esc(w.ex_ja)}</div>` : ""}</div>` : ""}
+              ${glossHtml(w, "flash-gloss")}
               ${w.note ? `<div class="flash-note">${esc(w.note)}</div>` : ""}
             </div>
           </div>
