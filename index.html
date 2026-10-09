@@ -1338,12 +1338,9 @@ function renderFlashcard(){
     saveState();
   }
   const jaFront = flash.front === "ja";
-  // 「↔ 言い換え」で、元の単語と言い換えを切り替えて見られる(そのカードの間だけ)
-  const variants = variantsOf(w);
-  let vi = 0;
-  const shownEn = () => variants[vi];
-  const enHtml = `<div class="flash-en-row"><div class="flash-en${shownEn().length > 28 ? " long" : ""}" lang="en">${esc(shownEn())}</div><button class="speak-btn" id="flashSpeak" aria-label="発音を聞く">${ICON.speaker(18)}</button></div>
-    ${variants.length > 1 ? `<div class="flash-alt-row"><span class="flash-alt-label">${esc(variantLabel(w, shownEn()))}</span><button class="alt-btn" data-flash-alt>${ICON.swap(13)}言い換え</button></div>` : ""}`;
+  // カードには言い換えの切り替えや印は出さない(情報が増えてややこしくなるため)。一覧でメインにした言い方だけを表示する
+  const shownEn = () => displayEn(w);
+  const enHtml = `<div class="flash-en-row"><div class="flash-en${shownEn().length > 28 ? " long" : ""}" lang="en">${esc(shownEn())}</div><button class="speak-btn" id="flashSpeak" aria-label="発音を聞く">${ICON.speaker(18)}</button></div>`;
   const jaHtml = `<div class="flash-ja">${esc(w.ja)}</div>`;
   const source = custom ? "自作" : (catById(w.cat) || {}).name || "";
   const keepFlip = flash.keepFlip && !!document.querySelector("#flashInner.flipped");
@@ -1433,13 +1430,6 @@ function renderFlashcard(){
     else { slide.style.transition = "transform .2s ease-out"; slide.style.transform = ""; }
   });
   const speakBtn = id => { const b = document.getElementById(id); if(b) b.onclick = e => { e.stopPropagation(); playText(w, shownEn()); }; };
-  document.querySelectorAll("[data-flash-alt]").forEach(b => b.onclick = e => {
-    e.stopPropagation(); // カードがめくれないように
-    vi = (vi + 1) % variants.length;
-    document.querySelectorAll(".flash-en").forEach(el => { el.textContent = shownEn(); el.classList.toggle("long", shownEn().length > 28); });
-    document.querySelectorAll(".flash-alt-label").forEach(el => { el.textContent = variantLabel(w, shownEn()); });
-    playText(w, shownEn());
-  });
   speakBtn("flashSpeak");
   speakBtn("flashSpeakBack");
   const exBtn = document.getElementById("flashSpeakEx");
