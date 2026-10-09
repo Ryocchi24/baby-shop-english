@@ -1384,220 +1384,120 @@ window.AUDIO_MANIFEST = {
   "word": {
    "file": "phrase-1.61451488.m4a",
    "text": "Hello! Welcome."
-  },
-  "alt0": {
-   "file": "phrase-1-alt0.634eb8aa.m4a",
-   "text": "Hi! Come on in."
   }
  },
  "phrase-2": {
   "word": {
    "file": "phrase-2.edff4be1.m4a",
    "text": "Please take your time."
-  },
-  "alt0": {
-   "file": "phrase-2-alt0.3e38b777.m4a",
-   "text": "No rush."
   }
  },
  "phrase-3": {
   "word": {
    "file": "phrase-3.e55a1599.m4a",
    "text": "Are you looking for anything in particular?"
-  },
-  "alt0": {
-   "file": "phrase-3-alt0.0ecb08be.m4a",
-   "text": "Can I help you find something?"
-  },
-  "alt1": {
-   "file": "phrase-3-alt1.8eedcbda.m4a",
-   "text": "What are you looking for?"
   }
  },
  "phrase-4": {
   "word": {
    "file": "phrase-4.8f94a7d3.m4a",
    "text": "How old is your baby?"
-  },
-  "alt0": {
-   "file": "phrase-4-alt0.074f379a.m4a",
-   "text": "How many months is your baby?"
   }
  },
  "phrase-5": {
   "word": {
    "file": "phrase-5.ca1f91ce.m4a",
    "text": "How will you mainly use it?"
-  },
-  "alt0": {
-   "file": "phrase-5-alt0.da44ecd4.m4a",
-   "text": "Where will you use it most?"
   }
  },
  "phrase-6": {
   "word": {
    "file": "phrase-6.a2901e6a.m4a",
    "text": "I'd recommend this one."
-  },
-  "alt0": {
-   "file": "phrase-6-alt0.f954ab8d.m4a",
-   "text": "This one is good."
-  },
-  "alt1": {
-   "file": "phrase-6-alt1.db6d83f0.m4a",
-   "text": "I like this one."
   }
  },
  "phrase-7": {
   "word": {
    "file": "phrase-7.9b7e6daa.m4a",
    "text": "Would you like to try it?"
-  },
-  "alt0": {
-   "file": "phrase-7-alt0.e373f707.m4a",
-   "text": "Do you want to try it?"
   }
  },
  "phrase-8": {
   "word": {
    "file": "phrase-8.76e0eeab.m4a",
    "text": "Let me show you how to fold it."
-  },
-  "alt0": {
-   "file": "phrase-8-alt0.1e0c6229.m4a",
-   "text": "I'll show you how to fold it."
   }
  },
  "phrase-9": {
   "word": {
    "file": "phrase-9.5b19439d.m4a",
    "text": "Let me check if we have it in stock."
-  },
-  "alt0": {
-   "file": "phrase-9-alt0.9ebd2bd8.m4a",
-   "text": "I'll check if we have it."
   }
  },
  "phrase-10": {
   "word": {
    "file": "phrase-10.5166b69e.m4a",
    "text": "Just a moment, please."
-  },
-  "alt0": {
-   "file": "phrase-10-alt0.8c1f7549.m4a",
-   "text": "One moment, please."
-  },
-  "alt1": {
-   "file": "phrase-10-alt1.fc46c7e0.m4a",
-   "text": "Just a second."
   }
  },
  "phrase-11": {
   "word": {
    "file": "phrase-11.bd951b67.m4a",
    "text": "Sorry, could you say that again?"
-  },
-  "alt0": {
-   "file": "phrase-11-alt0.e5c7c6ed.m4a",
-   "text": "Sorry?"
-  },
-  "alt1": {
-   "file": "phrase-11-alt1.2b18caf0.m4a",
-   "text": "Pardon?"
   }
  },
  "phrase-12": {
   "word": {
    "file": "phrase-12.1859113a.m4a",
    "text": "Could you speak a little more slowly?"
-  },
-  "alt0": {
-   "file": "phrase-12-alt0.880bb193.m4a",
-   "text": "Slowly, please."
   }
  },
  "phrase-13": {
   "word": {
    "file": "phrase-13.45278d1f.m4a",
    "text": "You can buy it tax-free."
-  },
-  "alt0": {
-   "file": "phrase-13-alt0.9c4acb60.m4a",
-   "text": "You don't have to pay tax."
   }
  },
  "phrase-14": {
   "word": {
    "file": "phrase-14.6fee3379.m4a",
    "text": "May I see your passport, please?"
-  },
-  "alt0": {
-   "file": "phrase-14-alt0.497efa3a.m4a",
-   "text": "Passport, please."
   }
  },
  "phrase-15": {
   "word": {
    "file": "phrase-15.3048f921.m4a",
    "text": "How would you like to pay?"
-  },
-  "alt0": {
-   "file": "phrase-15-alt0.d8b9aa68.m4a",
-   "text": "Cash or card?"
   }
  },
  "phrase-16": {
   "word": {
    "file": "phrase-16.458ce72f.m4a",
    "text": "Here's your receipt."
-  },
-  "alt0": {
-   "file": "phrase-16-alt0.b098634e.m4a",
-   "text": "Your receipt."
   }
  },
  "phrase-17": {
   "word": {
    "file": "phrase-17.d1c87239.m4a",
    "text": "What a cute baby!"
-  },
-  "alt0": {
-   "file": "phrase-17-alt0.9f8f04b1.m4a",
-   "text": "Your baby is so cute!"
   }
  },
  "phrase-18": {
   "word": {
    "file": "phrase-18.cd1a41be.m4a",
    "text": "Does that make sense?"
-  },
-  "alt0": {
-   "file": "phrase-18-alt0.6a77b658.m4a",
-   "text": "Is that OK?"
-  },
-  "alt1": {
-   "file": "phrase-18-alt1.b5983509.m4a",
-   "text": "Is that clear?"
   }
  },
  "phrase-19": {
   "word": {
    "file": "phrase-19.3654d557.m4a",
    "text": "Thank you very much."
-  },
-  "alt0": {
-   "file": "phrase-19-alt0.59cd96db.m4a",
-   "text": "Thanks a lot."
   }
  },
  "phrase-20": {
   "word": {
    "file": "phrase-20.1994b15a.m4a",
    "text": "Have a nice trip!"
-  },
-  "alt0": {
-   "file": "phrase-20-alt0.48aa4bf0.m4a",
-   "text": "Enjoy your trip!"
   }
  }
 };

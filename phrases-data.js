@@ -251,7 +251,7 @@ const PHRASE_NOTES = {
 };
 
 /* 言い換え(覚えにくい・言いにくいときに使える、やさしい言い方)。id は上と同じ「カテゴリid-並び順」。
-   言い換えを「｜」で区切って並べる。（ ）の中は日本語のメモ。言い換えが自然にできるものだけに付けている。 */
+   言い換えを「｜」で区切って並べる。（ ）の中は日本語のメモ。言い換えが自然にできる単語だけに付けている(「接客のひと言」はもともと言いやすい決まり文句なので付けない)。 */
 const PHRASE_ALTS = {
   "stroller-1": "pushchair（イギリス英語）｜buggy（イギリス英語。軽いタイプ）",
   "stroller-2": "sunshade（日よけ）｜sun cover",
@@ -330,25 +330,5 @@ const PHRASE_ALTS = {
   "shop-21": "send（送る）",
   "shop-22": "send abroad（海外へ送る）",
   "shop-23": "swap（取り替える）",
-  "shop-24": "money back（お金を返す）",
-  "phrase-1": "Hi! Come on in.",
-  "phrase-2": "No rush.（急がなくて大丈夫です）",
-  "phrase-3": "Can I help you find something?｜What are you looking for?",
-  "phrase-4": "How many months is your baby?",
-  "phrase-5": "Where will you use it most?",
-  "phrase-6": "This one is good.｜I like this one.",
-  "phrase-7": "Do you want to try it?",
-  "phrase-8": "I'll show you how to fold it.",
-  "phrase-9": "I'll check if we have it.",
-  "phrase-10": "One moment, please.｜Just a second.",
-  "phrase-11": "Sorry?｜Pardon?",
-  "phrase-12": "Slowly, please.",
-  "phrase-13": "You don't have to pay tax.",
-  "phrase-14": "Passport, please.",
-  "phrase-15": "Cash or card?",
-  "phrase-16": "Your receipt.",
-  "phrase-17": "Your baby is so cute!",
-  "phrase-18": "Is that OK?｜Is that clear?",
-  "phrase-19": "Thanks a lot.",
-  "phrase-20": "Enjoy your trip!"
+  "shop-24": "money back（お金を返す）"
 };
